@@ -187,6 +187,8 @@ colshape_poly.__index = colshape_poly
 setmetatable(colshape_poly, { __index = colshape })
 
 function colshape_poly.new(points, thickness)
+    thickness = thickness or 2
+
     lib.validate.type.assert(points, "table")
     lib.validate.type.assert(thickness, "number")
 
