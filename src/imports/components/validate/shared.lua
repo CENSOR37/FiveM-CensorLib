@@ -5,22 +5,22 @@ function validate.type(value, ...)
     local types = { ... }
     if (#types == 0) then return true end
 
-    local mapType = {}
+    local map_type = {}
     for i = 1, #types, 1 do
-        local validateType = types[i]
-        lua_assert(type(validateType) == "string", "bad argument types, only expected string") -- should never use anyhing else than string
-        mapType[validateType] = true
+        local validate_type = types[i]
+        lua_assert(type(validate_type) == "string", "bad argument types, only expected string") -- should never use anyhing else than string
+        map_type[validate_type] = true
     end
 
-    local valueType = type(value)
+    local value_type = type(value)
 
-    local matches = (mapType[valueType] ~= nil)
+    local matches = (map_type[value_type] ~= nil)
 
     if not (matches) then
-        local requireTypes = table.concat(types, ", ")
-        local errorMessage = ("bad value (%s expected, got %s)"):format(requireTypes, valueType)
+        local require_types = table.concat(types, ", ")
+        local error_message = ("bad value (%s expected, got %s)"):format(require_types, value_type)
 
-        return false, errorMessage
+        return false, error_message
     end
 
     return true
@@ -40,8 +40,8 @@ cslib_component = setmetatable({}, {
                 if (key ~= "assert") then return nil end
 
                 return function(...)
-                    local result, errorMessage = medthod(...)
-                    lua_assert(result, errorMessage)
+                    local result, error_message = medthod(...)
+                    lua_assert(result, error_message)
                 end
             end,
         });
