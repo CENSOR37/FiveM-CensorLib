@@ -41,7 +41,7 @@ function buildResource() {
         components["${component}"] = function(lib)
             local cslib_component = {}
                 ${sources[0]}
-            if (lib.bIsServer) then
+            if (lib.is_server) then
                 ${sources[1]}
             else
                 ${sources[2]}
