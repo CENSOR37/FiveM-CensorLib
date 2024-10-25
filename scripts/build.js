@@ -14,6 +14,8 @@ function formatSource(source) {
     return formatted;
 }
 
+let watermark = `--[[\n\tCode generated using github.com/Herrtt/luamin.js\n\tAn open source Lua beautifier and minifier.\n--]]\n\n`
+
 function buildResource() {
     // list all folders in src/imports/
     const componentsPath = './src/imports/components';
@@ -35,7 +37,7 @@ function buildResource() {
             sources.push(sourceValid ? fse.readFileSync(`${filePath}/${context}.lua`, 'utf8') : ``);
         });
 
-        let source = `
+        let source = `\n-------------------------------------------------------------------------------------------------- START OF COMPONENT ${component} -------------------\n
         components["${component}"] = function(lib)
             local cslib_component = {}
                 ${sources[0]}
@@ -45,7 +47,7 @@ function buildResource() {
                 ${sources[2]}
             end
             return cslib_component
-        end
+        end\n-------------------------------------------------------------------------------------------------- END OF COMPONENT ${component} -------------------\\n
         `;
         componentsSource = `${componentsSource}\n${source}`;
     });
@@ -54,7 +56,7 @@ function buildResource() {
     let coreSources = `${fse.readFileSync(`./src/imports/index.lua`, 'utf8')}`;
 
     componentsSource = `
-    ${componentsSource}\n
+    ${componentsSource}\n\n\n
     local lib = setmetatable({}, {
         __index = function(lib, key)
             local library = components[key]
@@ -65,8 +67,7 @@ function buildResource() {
             rawset(lib, key, library(lib))
             return rawget(lib, key)
         end
-    })
-
+    })\n
     _ENV.cslib = setmetatable({}, {
         __index = function(self, key)
 
@@ -78,6 +79,8 @@ function buildResource() {
     })`
     let sourceOutput = componentsSource;
     sourceOutput = formatSource(sourceOutput);
+    // find and remove watermark, if exists, sorry
+    sourceOutput = sourceOutput.replace(watermark, '');
     fse.outputFileSync(`./build/imports.lua`, sourceOutput);
     fse.outputFileSync(`${buildConfig.output}/imports.lua`, sourceOutput);
 }
