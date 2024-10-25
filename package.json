@@ -1,0 +1,12 @@
+{
+  "name": "censorlib",
+  "scripts": {
+    "watch": "node ./scripts/build.js"
+  },
+  "author": "CENSOR_1337",
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "fs-extra": "^11.0.0",
+    "lua-format": "^1.4.0"
+  }
+}
