@@ -6,6 +6,8 @@ local native = {
     add_event_handler = AddEventHandler,
     remove_event_handler = RemoveEventHandler,
     trigger_event = TriggerEvent,
+    trigger_server_event = TriggerServerEvent,
+    trigger_client_event = TriggerClientEvent,
     is_duplicity_version = IsDuplicityVersion,
 }
 local is_server = native.is_duplicity_version()
@@ -47,6 +49,7 @@ end
 lib.on = native.add_event_handler
 lib.off = native.remove_event_handler
 lib.emit = native.trigger_event
+lib[("emit_%s"):format(lib.service_inversed)] = lib.is_server and native.trigger_client_event or native.trigger_server_event
 lib.once = function(eventname, listener) return bind_once(false, eventname, listener) end
 lib[("on_%s"):format(lib.service_inversed)] = native.register_net_event
 lib[("once_%s"):format(lib.service_inversed)] = function(eventname, listener) return bind_once(true, eventname, listener) end
