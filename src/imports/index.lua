@@ -54,3 +54,5 @@ lib.emit_all_clients = lib.is_server and function(eventname, ...) return native.
 lib.once = function(eventname, listener) return bind_once(false, eventname, listener) end
 lib[("on_%s"):format(lib.service_inversed)] = native.register_net_event
 lib[("once_%s"):format(lib.service_inversed)] = function(eventname, listener) return bind_once(true, eventname, listener) end
+
+lib.uuid = lib.random.uuid
