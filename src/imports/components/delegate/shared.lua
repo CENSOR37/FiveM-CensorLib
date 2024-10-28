@@ -5,7 +5,7 @@ delegate.__index = delegate
 
 function delegate.new()
     local self = setmetatable({}, delegate)
-    self.listener_id = 0
+    self.listener_id = 10
     self.listeners = {}
 
     return self
