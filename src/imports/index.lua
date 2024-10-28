@@ -50,6 +50,7 @@ lib.on = native.add_event_handler
 lib.off = native.remove_event_handler
 lib.emit = native.trigger_event
 lib[("emit_%s"):format(lib.service_inversed)] = lib.is_server and native.trigger_client_event or native.trigger_server_event
+lib.emit_all_clients = lib.is_server and function(eventname, ...) return native.trigger_client_event(eventname, -1, ...) end or nil
 lib.once = function(eventname, listener) return bind_once(false, eventname, listener) end
 lib[("on_%s"):format(lib.service_inversed)] = native.register_net_event
 lib[("once_%s"):format(lib.service_inversed)] = function(eventname, listener) return bind_once(true, eventname, listener) end
