@@ -56,3 +56,6 @@ lib[("on_%s"):format(lib.service_inversed)] = native.register_net_event
 lib[("once_%s"):format(lib.service_inversed)] = function(eventname, listener) return bind_once(true, eventname, listener) end
 
 lib.uuid = lib.random.uuid
+
+-- common functions
+lib.coalesce = lib.common.coalesce
