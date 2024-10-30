@@ -73,8 +73,8 @@ function uuid.random()
     return id
 end
 
-cslib_component.string = setmetatable({ new = randomize_string.random }, { __call = function(_, ...) return randomize_string.random(...) end })
-cslib_component.uuid = setmetatable({ new = uuid.random }, { __call = function(_, ...) return uuid.random() end })
+lib_module.string = setmetatable({ new = randomize_string.random }, { __call = function(_, ...) return randomize_string.random(...) end })
+lib_module.uuid = setmetatable({ new = uuid.random }, { __call = function(_, ...) return uuid.random() end })
 
 local chance_pool = {}
 chance_pool.__index = chance_pool
@@ -130,7 +130,7 @@ function chance_pool:random()
     end
 end
 
-cslib_component.chance_pool = setmetatable({ new = chance_pool.new }, {
+lib_module.chance_pool = setmetatable({ new = chance_pool.new }, {
     __call = function()
         return chance_pool.new()
     end,

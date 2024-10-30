@@ -44,4 +44,4 @@ function delegate:empty()
     self.listeners = table_wipe(self.listeners)
 end
 
-cslib_component = setmetatable({ new = delegate.new }, { __call = function() return delegate.new() end })
+lib_module = setmetatable({ new = delegate.new }, { __call = function() return delegate.new() end })

@@ -26,7 +26,7 @@ function validate.type(value, ...)
     return true
 end
 
-cslib_component = setmetatable({}, {
+lib_module = setmetatable({}, {
     __index = function(_, key)
         local medthod = validate[key]
 

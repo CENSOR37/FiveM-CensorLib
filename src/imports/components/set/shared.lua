@@ -106,7 +106,7 @@ function set:empty()
     self.length = 0
 end
 
-cslib_component = setmetatable({
+lib_module = setmetatable({
     new = set.new,
     from_array = set.from_array,
 }, {

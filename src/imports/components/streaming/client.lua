@@ -53,7 +53,7 @@ end
 local warpped_request_anim_dict = lib.promise.warp_fn(request_animdict)
 local warpped_request_model = lib.promise.warp_fn(request_model)
 
-cslib_component.animdict = {
+lib_module.animdict = {
     request = setmetatable({}, {
         __call = function(_, ...)
             return warpped_request_anim_dict(...)
@@ -64,7 +64,7 @@ cslib_component.animdict = {
     is_valid = native.does_anim_dict_exist,
 }
 
-cslib_component.model = {
+lib_module.model = {
     request = setmetatable({}, {
         __call = function(_, ...)
             return warpped_request_model(...)

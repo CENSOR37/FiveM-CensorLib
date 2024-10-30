@@ -39,14 +39,14 @@ function buildResource() {
 
         let source = `\n-------------------------------------------------------------------------------------------------- START OF COMPONENT ${component} -------------------\n
         components["${component}"] = function(lib)
-            local cslib_component = {}
+            local lib_module = {}
                 ${sources[0]}
             if (lib.is_server) then
                 ${sources[1]}
             else
                 ${sources[2]}
             end
-            return cslib_component
+            return lib_module
         end\n-------------------------------------------------------------------------------------------------- END OF COMPONENT ${component} -------------------\\n
         `;
         componentsSource = `${componentsSource}\n${source}`;

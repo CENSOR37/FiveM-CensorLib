@@ -107,7 +107,7 @@ local instances = {}
 local resource_name = native.get_current_resource_name()
 instances[resource_name] = resource.new(resource_name)
 
-cslib_component = setmetatable({
+lib_module = setmetatable({
     get = function(resource)
         return resource.new(resource)
     end,

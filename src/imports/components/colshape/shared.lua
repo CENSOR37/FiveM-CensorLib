@@ -272,6 +272,6 @@ function colshape_box:draw_debug()
     draw_debug_polygon(self.triangles, self.polygon, self.thickness, color)
 end
 
-cslib_component.sphere = colshape_classwarp(colshape_sphere)
-cslib_component.poly = colshape_classwarp(colshape_poly)
-cslib_component.box = colshape_classwarp(colshape_box)
+lib_module.sphere = colshape_classwarp(colshape_sphere)
+lib_module.poly = colshape_classwarp(colshape_poly)
+lib_module.box = colshape_classwarp(colshape_box)

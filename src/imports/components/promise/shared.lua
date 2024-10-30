@@ -67,4 +67,4 @@ local function warp_promise(fn_handler)
     })
 end
 
-cslib_component.warp_fn = warp_promise
+lib_module.warp_fn = warp_promise

@@ -13,4 +13,4 @@ local function coalesce(...)
     return return_value
 end
 
-cslib_component.coalesce = coalesce
+lib_module.coalesce = coalesce

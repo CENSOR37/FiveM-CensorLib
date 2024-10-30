@@ -56,6 +56,6 @@ function color.form_hex(hex)
     return color.form_rgba(r, g, b, a)
 end
 
-cslib_component.rgba = color.form_rgba
-cslib_component.rgb = color.form_rgb
-cslib_component.hex = color.form_hex
+lib_module.rgba = color.form_rgba
+lib_module.rgb = color.form_rgb
+lib_module.hex = color.form_hex

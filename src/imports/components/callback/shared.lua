@@ -75,7 +75,7 @@ end
 
 local warpped_callback = lib.promise.warp_fn(trigger_callback_await)
 
-cslib_component = setmetatable({
+lib_module = setmetatable({
     register = register_callback,
 }, {
     __call = function(_, ...)

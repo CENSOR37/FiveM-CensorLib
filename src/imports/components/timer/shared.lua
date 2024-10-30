@@ -36,7 +36,7 @@ function timer:destroy()
     self.is_destroyed = true
 end
 
-cslib_component = setmetatable({
+lib_module = setmetatable({
     new = timer.new,
 }, {
     __call = function(_, ...)
