@@ -15,6 +15,7 @@ function formatSource(source) {
 }
 
 let watermark = `--[[\n\tCode generated using github.com/Herrtt/luamin.js\n\tAn open source Lua beautifier and minifier.\n--]]\n\n`
+let lib_variable_name = buildConfig.lib_variable_name;
 
 function buildResource() {
     // list all folders in src/imports/
@@ -68,12 +69,12 @@ function buildResource() {
             return rawget(lib, key)
         end
     })\n
-    _ENV.cslib = setmetatable({}, {
+    _ENV.${lib_variable_name} = setmetatable({}, {
         __index = function(self, key)
 
             ${coreSources}
 
-            rawset(_ENV, "cslib", lib)
+            rawset(_ENV, "${lib_variable_name}", lib)
             return lib[key]
         end
     })`
