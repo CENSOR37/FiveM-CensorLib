@@ -24,14 +24,14 @@ do
     randomize_string.charset.lower.len = #randomize_string.charset.lower.chars
 end
 
-function randomize_string.random(length, options)
+function randomize_string.random(length, opts)
     if (length > 0) then
-        options = options or { "lower", "upper", "numeric" }
-        options.op_len = options.op_len or #options
-        local char_type = options[math_random(1, options.op_len)]
+        opts = opts or { "lower", "upper", "numeric" }
+        opts.op_len = opts.op_len or #opts
+        local char_type = opts[math_random(1, opts.op_len)]
         local new_char = randomize_string.charset[char_type].chars[math_random(1, randomize_string.charset[char_type].len)]
 
-        return new_char .. randomize_string.random(length - 1, options)
+        return new_char .. randomize_string.random(length - 1, opts)
     end
 
     return ""
