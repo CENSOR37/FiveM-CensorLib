@@ -56,7 +56,7 @@ local function set_language(lang)
     default_lang = lang
 end
 
-cslib_component = setmetatable({
+lib_module = setmetatable({
     set_language = set_language,
     set_lang = set_language,
     loc = locale,
