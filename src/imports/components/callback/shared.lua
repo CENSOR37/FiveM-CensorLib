@@ -73,7 +73,7 @@ local function trigger_callback_await(eventname, src, ...)
     return table_unpack(return_values.params)
 end
 
-local warpped_callback = lib.promise.warp_fn(trigger_callback_await)
+local warpped_callback = lib.taskify(trigger_callback_await)
 
 lib_module = setmetatable({
     register = register_callback,

@@ -50,8 +50,8 @@ local function request_model(in_model)
     return true
 end
 
-local warpped_request_anim_dict = lib.promise.warp_fn(request_animdict)
-local warpped_request_model = lib.promise.warp_fn(request_model)
+local warpped_request_anim_dict = lib.taskify(request_animdict)
+local warpped_request_model = lib.taskify(request_model)
 
 lib_module.animdict = {
     request = setmetatable({}, {

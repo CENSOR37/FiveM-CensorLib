@@ -8,8 +8,9 @@ local alias_fields = {
     ["then"] = "after", -- i wish i could use this, but it's a reserved keyword
 }
 
-local function warp_promise(fn_handler)
+local function taskify(fn_handler)
     local is_used = false
+
     return setmetatable({}, {
         __call = function(_, ...)
             local args = { ... }
@@ -67,4 +68,4 @@ local function warp_promise(fn_handler)
     })
 end
 
-lib_module.warp_fn = warp_promise
+lib_module = taskify
