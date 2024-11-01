@@ -1,6 +1,10 @@
 local color = {}
 color.__index = color
 
+local function clamp_color_value(value)
+    return math.max(0, math.min(255, math.floor(value)))
+end
+
 function color:rgb()
     return { r = self.r, g = self.g, b = self.b }
 end
@@ -25,10 +29,10 @@ function color.form_rgba(r, g, b, a)
     lib.validate.type.assert(a, "number")
 
     local self = {}
-    self.r = r or 0
-    self.g = g or 0
-    self.b = b or 0
-    self.a = a or 255
+    self.r = clamp_color_value(r)
+    self.g = clamp_color_value(g)
+    self.b = clamp_color_value(b)
+    self.a = clamp_color_value(a or 255)
 
     return setmetatable(self, {
         __index = function(t, k)
@@ -46,14 +50,22 @@ end
 function color.form_hex(hex)
     lib.validate.type.assert(hex, "string")
 
-    hex = hex:gsub("#", "")
+    hex = hex:gsub("#", ""):upper()
+
+    if #hex ~= 6 and #hex ~= 8 then
+        error("Invalid hex color format. Must be #RRGGBB or #RRGGBBAA")
+    end
 
     local r = tonumber(hex:sub(1, 2), 16)
     local g = tonumber(hex:sub(3, 4), 16)
     local b = tonumber(hex:sub(5, 6), 16)
-    local a = tonumber(hex:sub(7, 8), 16) or 255
+    local a = #hex == 8 and tonumber(hex:sub(7, 8), 16) or 255
 
-    return color.form_rgba(r, g, b, a)
+    if not (r and g and b and a) then
+        error("Invalid hex color values")
+    end
+
+    return color.from_rgba(r, g, b, a)
 end
 
 lib_module.rgba = color.form_rgba
