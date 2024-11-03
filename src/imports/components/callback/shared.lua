@@ -20,24 +20,25 @@ local function register_callback(eventname, listener)
     end)
 end
 
-local function trigger_callback(eventname, src, listener, ...)
+local function trigger_callback_to_server(eventname, listener, ...)
+    lib.validate.type.assert(listener, "function", "table")
+
     local callback_id = lib.random.uuid()
     local cb_eventname = ("%s:%s"):format(prefix, eventname)
 
-    if (lib.is_server) then
-        lib.validate.type.assert(src, "number", "string")
-        lib.validate.type.assert(listener, "function", "table")
+    lib.once_server(callback_id, listener)
+    lib.emit_server(cb_eventname, callback_id, listener, ...)
+end
 
-        lib.once_client(callback_id, listener)
-        lib.emit_client(cb_eventname, src, callback_id, ...)
-    else
-        -- if client triggering server callback src or player id is not required
-        -- src is going to be listener
-        lib.validate.type.assert(src, "function", "table")
+local function trigger_callback_to_client(eventname, src, listener, ...)
+    lib.validate.type.assert(src, "number", "string")
+    lib.validate.type.assert(listener, "function", "table")
 
-        lib.once_server(callback_id, src)
-        lib.emit_server(cb_eventname, callback_id, listener, ...)
-    end
+    local callback_id = lib.random.uuid()
+    local cb_eventname = ("%s:%s"):format(prefix, eventname)
+
+    lib.once_client(callback_id, listener)
+    lib.emit_client(cb_eventname, src, callback_id, ...)
 end
 
 local function trigger_callback_await(eventname, src, ...)
@@ -52,9 +53,9 @@ local function trigger_callback_await(eventname, src, ...)
         end
 
         if (lib.is_server) then
-            trigger_callback(eventname, src, handler, ...)
+            trigger_callback_to_client(eventname, src, handler, ...)
         else
-            trigger_callback(eventname, handler, src, ...)
+            trigger_callback_to_server(eventname, handler, src, ...)
         end
 
         lib.set_timeout(function()
