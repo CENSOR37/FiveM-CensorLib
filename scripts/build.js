@@ -84,9 +84,12 @@ function buildResource() {
     sourceOutput = sourceOutput.replace(watermark, '');
     fse.outputFileSync(`./build/imports.lua`, sourceOutput);
     fse.outputFileSync(`${buildConfig.output}/imports.lua`, sourceOutput);
+
+    // copy all files in "test" to build
+    fse.copySync("./test", `${buildConfig.output}/test`);
 }
 
-Chokidar.watch('./src/').on('change', async (event, path) => {
+Chokidar.watch(["./src", "./test"]).on('change', async (event, path) => {
     buildResource();
 });
 
