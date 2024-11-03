@@ -50,13 +50,10 @@ local function request_model(in_model)
     return true
 end
 
-local warpped_request_anim_dict = lib.taskify(request_animdict)
-local warpped_request_model = lib.taskify(request_model)
-
 lib_module.animdict = {
     request = setmetatable({}, {
         __call = function(_, ...)
-            return warpped_request_anim_dict(...)
+            return lib.taskify(request_animdict)(...)
         end,
     }),
     clear = native.remove_anim_dict,
@@ -67,7 +64,7 @@ lib_module.animdict = {
 lib_module.model = {
     request = setmetatable({}, {
         __call = function(_, ...)
-            return warpped_request_model(...)
+            return lib.taskify(request_model)(...)
         end,
     }),
     clear = native.set_model_as_no_longer_needed,
