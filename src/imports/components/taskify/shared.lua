@@ -24,7 +24,8 @@ local function taskify(fn_handler)
 
             return setmetatable({
                 after = function(callback)
-                    if (is_used) then return nil end
+                    assert(not is_used, "taskify can only be used once")
+
                     is_used = true
 
                     lib.validate.type.assert(callback, "function")
@@ -38,7 +39,8 @@ local function taskify(fn_handler)
                 end,
 
                 await = function()
-                    if (is_used) then return nil end
+                    assert(not is_used, "taskify can only be used once")
+
                     is_used = true
 
                     if (return_packed) then
