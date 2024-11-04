@@ -36,7 +36,7 @@ local function warpper(request_fn, clear, has_loaded, is_valid)
     return {
         request = setmetatable({}, {
             __call = function(_, ...)
-                return lib.taskify(request_fn)(...)
+                return lib.async(request_fn)(...)
             end,
         }),
         clear = clear,

@@ -8,7 +8,7 @@ local alias_fields = {
     ["then"] = "after", -- i wish i could use this, but it's a reserved keyword
 }
 
-local function taskify(fn_handler)
+local function async(fn_handler)
     local is_used = false
 
     return setmetatable({}, {
@@ -24,7 +24,7 @@ local function taskify(fn_handler)
 
             return setmetatable({
                 after = function(callback)
-                    assert(not is_used, "taskify can only be used once")
+                    assert(not is_used, "async can only be used once")
 
                     is_used = true
 
@@ -39,7 +39,7 @@ local function taskify(fn_handler)
                 end,
 
                 await = function()
-                    assert(not is_used, "taskify can only be used once")
+                    assert(not is_used, "async can only be used once")
 
                     is_used = true
 
@@ -70,4 +70,4 @@ local function taskify(fn_handler)
     })
 end
 
-lib_module = taskify
+lib_module = async

@@ -78,6 +78,6 @@ lib_module = setmetatable({
     register = register_callback,
 }, {
     __call = function(_, ...)
-        return lib.taskify(trigger_callback_await)(...)
+        return lib.async(trigger_callback_await)(...)
     end,
 })
