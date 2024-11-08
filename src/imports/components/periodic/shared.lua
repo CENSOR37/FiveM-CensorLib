@@ -1,8 +1,9 @@
 local periodic = {}
 periodic.__index = periodic
 
-function periodic.new(opts)
-    opts = opts or {}
+function periodic.new(tick_rate)
+    tick_rate = lib.coalesce(tick_rate, 0)
+
     local self = {}
     self.handlers = {
         fn = {},
@@ -11,7 +12,7 @@ function periodic.new(opts)
     }
     self.b_reassign_table = false
     self.id = 10
-    self.tick_rate = opts.tick_rate or 0
+    self.tick_rate = tick_rate
     self.interval = nil
 
     return setmetatable(self, periodic)
