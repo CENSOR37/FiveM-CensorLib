@@ -27,7 +27,7 @@ local function trigger_callback_to_server(eventname, listener, ...)
     local cb_eventname = ("%s:%s"):format(prefix, eventname)
 
     lib.once_server(callback_id, listener)
-    lib.emit_server(cb_eventname, callback_id, listener, ...)
+    lib.emit_server(cb_eventname, callback_id, ...)
 end
 
 local function trigger_callback_to_client(eventname, src, listener, ...)
