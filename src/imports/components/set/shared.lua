@@ -70,6 +70,8 @@ function set:array()
 end
 
 function set:add(value)
+    if (self:contain(value)) then return end
+
     lib.validate.type.assert(value, "string", "number", "boolean", "table")
 
     table.insert(self.data, value)
