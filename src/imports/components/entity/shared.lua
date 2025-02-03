@@ -140,7 +140,6 @@ setmetatable(object_class, { __index = entity })
 
 function object_class.new(model, position, rotation)
     local self = setmetatable(entity.new(model, position, rotation, entity_types.object), object_class)
-    self:wait_for_creation()
 
     return self
 end
@@ -152,7 +151,6 @@ setmetatable(ped_class, { __index = entity })
 
 function ped_class.new(model, position, rotation)
     local self = setmetatable(entity.new(model, position, rotation, entity_types.ped), ped_class)
-    self:wait_for_creation()
 
     return self
 end
@@ -164,7 +162,6 @@ setmetatable(vehicle_class, { __index = entity })
 
 function vehicle_class.new(model, position, rotation)
     local self = setmetatable(entity.new(model, position, rotation, entity_types.vehicle), vehicle_class)
-    self:wait_for_creation()
 
     return self
 end
@@ -174,7 +171,7 @@ local classwarp = function(class, ...)
         new = class.new,
     }, {
         __call = function(t, ...)
-            return lib.async(t.new)(...)
+            return t.new(...)
         end,
     })
 end
