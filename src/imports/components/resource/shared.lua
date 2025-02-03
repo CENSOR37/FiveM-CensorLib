@@ -15,14 +15,11 @@ function resource.new(resource_name)
     self.name = resource_name
     self.callback = setmetatable({
         register = function(eventname, ...)
-            return lib.net.callback.register(self:prefix(eventname), ...)
-        end,
-        await = function(eventname, ...)
-            return lib.net.callback.await(self:prefix(eventname), ...)
+            return lib.callback.register(self:prefix(eventname), ...)
         end,
     }, {
-        __call = function(t, eventname, ...)
-            return lib.net.callback(self:prefix(eventname), ...)
+        __call = function(_, eventname, ...)
+            return lib.callback(self:prefix(eventname), ...)
         end,
     })
 
