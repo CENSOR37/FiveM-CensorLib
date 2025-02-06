@@ -9,6 +9,7 @@ local native = {
     trigger_server_event = TriggerServerEvent,
     trigger_client_event = TriggerClientEvent,
     is_duplicity_version = IsDuplicityVersion,
+    get_invoking_resource = GetInvokingResource,
 }
 local is_server = native.is_duplicity_version()
 
@@ -24,6 +25,15 @@ local function bind_once(is_network, eventname, listener)
     return event
 end
 
+local function on_remote(eventName, cb)
+    local remote_cb = function(...)
+        if not (native.get_invoking_resource()) then -- invoking resource is nil if it's a remote event
+            return cb(...)
+        end
+    end
+
+    return native.register_net_event(eventName, remote_cb)
+end
 
 lib.is_server = is_server
 lib.is_client = not is_server
@@ -52,7 +62,7 @@ lib.emit = native.trigger_event
 lib[("emit_%s"):format(lib.service_inversed)] = lib.is_server and native.trigger_client_event or native.trigger_server_event
 lib.emit_all_clients = lib.is_server and function(eventname, ...) return native.trigger_client_event(eventname, -1, ...) end or nil
 lib.once = function(eventname, listener) return bind_once(false, eventname, listener) end
-lib[("on_%s"):format(lib.service_inversed)] = native.register_net_event
+lib[("on_%s"):format(lib.service_inversed)] = on_remote
 lib[("once_%s"):format(lib.service_inversed)] = function(eventname, listener) return bind_once(true, eventname, listener) end
 
 lib.uuid = lib.random.uuid
