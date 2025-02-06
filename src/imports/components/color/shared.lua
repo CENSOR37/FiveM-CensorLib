@@ -52,18 +52,14 @@ function color.form_hex(hex)
 
     hex = hex:gsub("#", ""):upper()
 
-    if #hex ~= 6 and #hex ~= 8 then
-        error("Invalid hex color format. Must be #RRGGBB or #RRGGBBAA")
-    end
+    assert(#hex == 6 or #hex == 8, "Invalid hex color format. Must be #RRGGBB or #RRGGBBAA")
 
     local r = tonumber(hex:sub(1, 2), 16)
     local g = tonumber(hex:sub(3, 4), 16)
     local b = tonumber(hex:sub(5, 6), 16)
     local a = #hex == 8 and tonumber(hex:sub(7, 8), 16) or 255
 
-    if not (r and g and b and a) then
-        error("Invalid hex color values")
-    end
+    assert(r and g and b and a, "Invalid hex color values")
 
     return color.from_rgba(r, g, b, a)
 end

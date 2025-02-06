@@ -21,9 +21,7 @@ end
 function randset:add_item(chance, data)
     lib.validate.type.assert(chance, "number")
 
-    if not (data) then
-        error("data is required")
-    end
+    assert(data, "data is required")
 
     self.key = self.key + 1
     self.pool[self.key] = { chance = chance, data = data }

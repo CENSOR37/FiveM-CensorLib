@@ -61,9 +61,7 @@ function buildResource() {
     local lib = setmetatable({}, {
         __index = function(lib, key)
             local library = components[key]
-            if not (library) then
-                error(("^1[ Component %s not found ]^0"):format(key), 2)
-            end
+            assert(library, ("^1[ Component %s not found ]^0"):format(key))
 
             rawset(lib, key, library(lib))
             return rawget(lib, key)

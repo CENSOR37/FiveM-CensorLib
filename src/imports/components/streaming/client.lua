@@ -62,9 +62,7 @@ end
 local function request_anim_dict(in_animdict)
     lib.validate.type.assert(in_animdict, "string")
 
-    if (not native.does_anim_dict_exist(in_animdict)) then
-        error(("animdict \"%s\" was not exist"):format(in_animdict))
-    end
+    assert(native.does_anim_dict_exist(in_animdict), ("animdict \"%s\" was not exist"):format(in_animdict))
 
     return request_streaming(native.has_anim_dict_loaded, native.request_anim_dict, in_animdict)
 end
@@ -74,9 +72,7 @@ local function request_model(in_model)
 
     local model_hash = type(in_model) == "number" and in_model or joaat(in_model)
 
-    if (not native.is_model_valid(model_hash)) then
-        error(("model \"%s\" is not valid"):format(in_model))
-    end
+    assert(native.is_model_valid(model_hash), ("model \"%s\" is not valid"):format(in_model))
 
     return request_streaming(native.has_model_loaded, native.request_model, model_hash)
 end
