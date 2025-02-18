@@ -62,7 +62,7 @@ end
 
 function set:array()
     local array = {}
-    for i = 1, #self.data, 1 do
+    for i = 1, self.length, 1 do
         local value = self.data[i]
         array[i] = value
     end
