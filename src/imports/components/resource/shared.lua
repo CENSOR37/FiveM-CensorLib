@@ -1,5 +1,6 @@
 local native = {
     get_current_resource_name = GetCurrentResourceName,
+    get_resource_state = GetResourceState,
 }
 
 local eventnames = {
@@ -103,13 +104,19 @@ end
 local instances = {}
 local resource_name = native.get_current_resource_name()
 instances[resource_name] = resource.new(resource_name)
+local self_instance = instances[resource_name]
 
-lib_module = setmetatable({
-    get = function(resource)
-        return resource.new(resource)
-    end,
-}, {
+lib_module = setmetatable({}, {
     __index = function(t, field)
-        return instances[resource_name][field]
+        local method = self_instance[field]
+        if (method) then return method end
+
+        if (native.get_resource_state(field) == "started") then
+            local instance = instances[field] or resource.new(field)
+            instances[field] = instance
+            return instance
+        end
+
+        error(("Cannot find a method or resource named \"%s\""):format(field))
     end,
 })
