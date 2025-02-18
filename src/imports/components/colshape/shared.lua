@@ -176,6 +176,40 @@ end
 function colshape:draw_debug()
 end
 
+local colshape_circle = {}
+colshape_circle.__index = colshape_circle
+
+function colshape_circle.new(position, radius)
+    lib.validate.type.assert(position, "vector3", "vector4", "table")
+    lib.validate.type.assert(radius, "number")
+
+    local self = setmetatable({}, colshape_circle)
+    self.radius = numdeci(radius)
+    self.position = vec(position.x, position.y)
+    return self
+end
+
+function colshape_circle:is_position_inside(position)
+    local point = vec(position.x, position.y)
+    return #(point - self.position) <= self.radius
+end
+
+function colshape_circle:draw_debug()
+    if (lib.is_server) then return end
+
+    local ped = native.player_ped_id()
+    local coords = native.get_entity_coords(ped)
+    local is_local_ped_inside = self:is_position_inside(coords)
+    local color = is_local_ped_inside and { r = 0, g = 255, b = 0, a = 75 } or { r = 0, g = 0, b = 255, a = 75 }
+    local dist = #(coords.xy - self.position)
+
+    local pos = self.position
+    local rad = self.radius
+    native.draw_marker(1, pos.x, pos.y, -10000.0, 0, 0, 0, 0, 0, 0, rad * 2.0, rad * 2.0, 20000.0, color.r, color.g, color.b, color.a, false, false, 2, false, nil, nil, false)
+
+    draw_text_3d_dbg(("%.4f"):format(dist), vector3(pos.x, pos.y, 0.0))
+end
+
 -- colshape_sphere
 local colshape_sphere = {}
 colshape_sphere.__index = colshape_sphere
@@ -271,5 +305,6 @@ function colshape_poly:draw_debug()
     end
 end
 
+lib_module.circle = colshape_classwarp(colshape_circle)
 lib_module.sphere = colshape_classwarp(colshape_sphere)
 lib_module.poly = colshape_classwarp(colshape_poly)
