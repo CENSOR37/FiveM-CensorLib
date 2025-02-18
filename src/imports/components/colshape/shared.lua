@@ -271,54 +271,5 @@ function colshape_poly:draw_debug()
     end
 end
 
--- colshape_box
-local colshape_box = {}
-colshape_box.__index = colshape_box
-setmetatable(colshape_box, { __index = colshape })
-
-function colshape_box.new(position, size, rotation)
-    rotation = rotation or 0
-
-    lib.validate.type.assert(position, "vector3", "vector4", "table")
-    lib.validate.type.assert(size, "vector3", "vector4", "table")
-    lib.validate.type.assert(rotation, "number")
-
-    local self = setmetatable(colshape.new(), colshape_box)
-    self.position = vec(position.x, position.y, position.z)
-    self.size = vec(size.x, size.y, size.z) / 2 or vec3(2)
-    self.thickness = self.size.z * 2
-    self.rotation = quat(rotation or 0, vec(0, 0, 1))
-    self.polygon = (self.rotation * glm.polygon.new({
-        vec3(self.size.x, self.size.y, 0),
-        vec3(-self.size.x, self.size.y, 0),
-        vec3(-self.size.x, -self.size.y, 0),
-        vec3(self.size.x, -self.size.y, 0),
-    }) + self.position)
-
-    return self
-end
-
-function colshape_box:is_position_inside(position)
-    return glm_polygon_contains(self.polygon, vec(position.x, position.y, position.z), self.thickness / 4)
-end
-
-function colshape_box:draw_debug()
-    if (lib.is_server) then return end
-
-    local ped = native.player_ped_id()
-    local coords = native.get_entity_coords(ped)
-    local is_local_ped_inside = self:is_position_inside(coords)
-    local color = is_local_ped_inside and { r = 0, g = 255, b = 0, a = 75 } or { r = 0, g = 0, b = 255, a = 75 }
-
-    if not (self.triangles) then
-        self.triangles = {
-            get_triangles(glm.polygon.new(table_map(self.polygon, function(point) return point - vec(0, 0, self.thickness / 2) end))),
-            get_triangles(glm.polygon.new(table_map(self.polygon, function(point) return point + vec(0, 0, self.thickness / 2) end))),
-        }
-    end
-    draw_debug_polygon(self.triangles, self.polygon, self.thickness, color)
-end
-
 lib_module.sphere = colshape_classwarp(colshape_sphere)
 lib_module.poly = colshape_classwarp(colshape_poly)
-lib_module.box = colshape_classwarp(colshape_box)
