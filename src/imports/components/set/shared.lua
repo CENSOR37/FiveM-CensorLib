@@ -108,6 +108,15 @@ function set:empty()
     self.length = 0
 end
 
+function set:foreach(callback)
+    lib.validate.type.assert(callback, "function")
+
+    for i = 1, self.length do
+        local value = self.data[i]
+        callback(value)
+    end
+end
+
 lib_module = setmetatable({
     new = set.new,
     from_array = set.from_array,
