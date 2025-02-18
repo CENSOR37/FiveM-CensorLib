@@ -124,6 +124,9 @@ function colshape_sphere:draw_debug()
     local is_local_ped_inside = self:is_position_inside(coords)
     local color = is_local_ped_inside and { r = 0, g = 255, b = 0, a = 75 } or { r = 0, g = 0, b = 255, a = 75 }
     native.draw_marker(28, self.position.x, self.position.y, self.position.z, 0, 0, 0, 0, 0, 0, f_radius, f_radius, f_radius, color.r, color.g, color.b, color.a, false, false, 0, false, nil, nil, false)
+
+    local dist = #(coords - self.position)
+    draw_text_3d_dbg(("%.4f"):format(dist), self.position)
 end
 
 -- colshape_poly
