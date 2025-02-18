@@ -235,7 +235,7 @@ end
 
 function colshape_poly:is_position_inside(position)
     local point = vec(position.x, position.y, position.z)
-    return glm.polygon.contains(self.polygon, point, self.thickness)
+    return glm_polygon_contains(self.polygon, point, self.thickness)
 end
 
 function colshape_poly:draw_debug()
