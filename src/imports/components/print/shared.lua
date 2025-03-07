@@ -27,8 +27,6 @@ local convar_key = ("%s:print_level"):format(lib.resource.name)
 local function make_convar_dirty()
     local new_convar = GetConvar(convar_key, "info")
     print_level = prefix_levels[new_convar] or 3
-
-    print(("[^2%s^7] print level set to ^5%s^7"):format(lib.resource.name, new_convar))
 end
 make_convar_dirty()
 AddConvarChangeListener(convar_key, make_convar_dirty)
