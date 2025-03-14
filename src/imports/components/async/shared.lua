@@ -4,8 +4,9 @@ local create_thread_now = Citizen.CreateThreadNow
 local citizen_await = Citizen.Await
 
 local alias_fields = {
-    ["done"] = "after",
-    ["then"] = "after", -- i wish i could use this, but it's a reserved keyword
+    ["after"] = "callback",
+    ["done"] = "callback",
+    ["then"] = "callback", -- i wish i could use this, but it's a reserved keyword
 }
 
 local function async(fn_handler)
@@ -23,7 +24,7 @@ local function async(fn_handler)
             end)
 
             return setmetatable({
-                after = function(callback)
+                callback = function(callback)
                     assert(not is_used, "async can only be used once")
 
                     is_used = true
