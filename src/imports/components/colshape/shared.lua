@@ -40,6 +40,9 @@ end
 local function colshape_classwarp(class, ...)
     return setmetatable({
         new = class.new,
+        is_a = function(self, obj)
+            return getmetatable(obj) == class
+        end,
     }, {
         __call = function(t, ...)
             return t.new(...)
