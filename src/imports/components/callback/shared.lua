@@ -1,7 +1,8 @@
 local promise = promise
 local citizen_await = Citizen.Await
 local table_unpack = table.unpack
-local on_remote = lib.is_server and lib.on_client or lib.on_server
+local is_server = lib.is_server
+local on_remote = is_server and lib.on_client or lib.on_server
 
 local prefix = "cslib.cb"
 local timeout_time = 10 * 1000
@@ -12,7 +13,7 @@ local function register_callback(eventname, listener)
     return on_remote(cb_eventname, function(id, ...)
         local src = source
 
-        if (lib.is_server) then
+        if (is_server) then
             lib.emit_client(id, src, listener(...))
         else
             lib.emit_server(id, listener(...))
@@ -52,7 +53,7 @@ local function trigger_callback_await(eventname, src, ...)
             })
         end
 
-        if (lib.is_server) then
+        if (is_server) then
             trigger_callback_to_client(eventname, src, handler, ...)
         else
             trigger_callback_to_server(eventname, handler, src, ...)
