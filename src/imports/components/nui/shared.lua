@@ -33,8 +33,13 @@ function meta_index.on(name, listener)
     lib.validate.type.assert(listener, "function")
 
     native.register_nui_callback(name, function(data, cb)
-        data = data or {}
-        cb(listener(table.unpack(data)) or 1)
+        local results = { listener(table.unpack(data)) }
+        if (#results <= 0) then
+            cb({ ok = true })
+            return
+        end
+
+        cb({ ok = true, results = results })
     end)
 end
 
