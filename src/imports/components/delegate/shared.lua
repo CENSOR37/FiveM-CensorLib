@@ -15,7 +15,7 @@ function delegate:size()
     return #self.listeners
 end
 
-function delegate:add(listener)
+function delegate:bind(listener)
     self.listener_id = self.listener_id + 1
     local listener_info = { id = self.listener_id, listener = listener }
     self.listeners[#self.listeners + 1] = listener_info
@@ -23,7 +23,7 @@ function delegate:add(listener)
     return listener_info.id
 end
 
-function delegate:remove(id)
+function delegate:unbind(id)
     for i = 1, #self.listeners, 1 do
         local listener_info = self.listeners[i]
         if (listener_info.id == id) then
@@ -32,6 +32,9 @@ function delegate:remove(id)
         end
     end
 end
+
+delegate.add = delegate.bind
+delegate.remove = delegate.unbind
 
 function delegate:broadcast(...)
     for i = 1, #self.listeners, 1 do
