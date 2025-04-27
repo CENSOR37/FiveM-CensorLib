@@ -74,6 +74,10 @@ function entity.new(model, position, rotation, entity_type, is_network)
         end
         entity.__instances[self.handle] = self
 
+        if (lib.is_client) then
+            lib.streaming.model.clear(self.model)
+        end
+
         native.set_entity_coords(self.handle, position.x, position.y, position.z, false, false, false, false)
         native.set_entity_rotation(self.handle, rotation.x, rotation.y, rotation.z, 0, false)
 
