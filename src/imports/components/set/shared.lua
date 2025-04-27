@@ -117,6 +117,18 @@ function set:foreach(callback)
     end
 end
 
+function set:has(value)
+    return self:contain(value)
+end
+
+function set:clear()
+    self:empty()
+end
+
+function set:delete(value)
+    self:remove(value)
+end
+
 lib_module = setmetatable({
     new = set.new,
     from_array = set.from_array,
