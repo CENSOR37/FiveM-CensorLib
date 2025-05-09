@@ -32,7 +32,7 @@ local native = {
     remove_weapon_asset = RemoveWeaponAsset,
 }
 
-local function warpper(request_fn, clear, has_loaded, is_valid)
+local function wrapper(request_fn, clear, has_loaded, is_valid)
     return {
         request = setmetatable({}, {
             __call = function(_, ...)
@@ -107,10 +107,10 @@ local function request_weapon_asset(in_weapon)
     return request_streaming(native.has_weapon_asset_loaded, native.request_weapon_asset, in_weapon)
 end
 
-lib_module.anim_dict = warpper(request_anim_dict, native.remove_anim_dict, native.has_anim_dict_loaded, native.does_anim_dict_exist)
-lib_module.model = warpper(request_model, native.set_model_as_no_longer_needed, native.has_model_loaded, native.is_model_valid)
-lib_module.anim_set = warpper(request_anim_set, native.remove_anim_set, native.has_anim_set_loaded)
-lib_module.streamed_texture_dict = warpper(request_streamed_texture_dict, native.set_streamed_texture_dict_as_no_longer_needed, native.has_streamed_texture_dict_loaded)
-lib_module.named_ptfx_asset = warpper(request_named_ptfx_asset, native.remove_named_ptfx_asset, native.has_named_ptfx_asset_loaded)
-lib_module.scaleform_movie = warpper(request_scaleform_movie, native.set_scaleform_movie_as_no_longer_needed, native.has_scaleform_movie_loaded)
-lib_module.weapon_asset = warpper(request_weapon_asset, native.remove_weapon_asset, native.has_weapon_asset_loaded)
+lib_module.anim_dict = wrapper(request_anim_dict, native.remove_anim_dict, native.has_anim_dict_loaded, native.does_anim_dict_exist)
+lib_module.model = wrapper(request_model, native.set_model_as_no_longer_needed, native.has_model_loaded, native.is_model_valid)
+lib_module.anim_set = wrapper(request_anim_set, native.remove_anim_set, native.has_anim_set_loaded)
+lib_module.streamed_texture_dict = wrapper(request_streamed_texture_dict, native.set_streamed_texture_dict_as_no_longer_needed, native.has_streamed_texture_dict_loaded)
+lib_module.named_ptfx_asset = wrapper(request_named_ptfx_asset, native.remove_named_ptfx_asset, native.has_named_ptfx_asset_loaded)
+lib_module.scaleform_movie = wrapper(request_scaleform_movie, native.set_scaleform_movie_as_no_longer_needed, native.has_scaleform_movie_loaded)
+lib_module.weapon_asset = wrapper(request_weapon_asset, native.remove_weapon_asset, native.has_weapon_asset_loaded)
