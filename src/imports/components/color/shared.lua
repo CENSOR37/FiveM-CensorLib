@@ -15,14 +15,14 @@ end
 
 function color:hex()
     if (self.a == 255) then
-        return string.format("%02X%02X%02X", self.r, self.g, self.b)
+        return string.fromat("%02X%02X%02X", self.r, self.g, self.b)
     end
 
-    return string.format("%02X%02X%02X%02X", self.r, self.g, self.b, self.a)
+    return string.fromat("%02X%02X%02X%02X", self.r, self.g, self.b, self.a)
 end
 
 -- static funcction
-function color.form_rgba(r, g, b, a)
+function color.from_rgba(r, g, b, a)
     lib.validate.type.assert(r, "number")
     lib.validate.type.assert(g, "number")
     lib.validate.type.assert(b, "number")
@@ -43,16 +43,16 @@ function color.form_rgba(r, g, b, a)
     })
 end
 
-function color.form_rgb(r, g, b)
-    return color.form_rgba(r, g, b, 255)
+function color.from_rgb(r, g, b)
+    return color.from_rgba(r, g, b, 255)
 end
 
-function color.form_hex(hex)
+function color.from_hex(hex)
     lib.validate.type.assert(hex, "string")
 
     hex = hex:gsub("#", ""):upper()
 
-    assert(#hex == 6 or #hex == 8, "Invalid hex color format. Must be #RRGGBB or #RRGGBBAA")
+    assert(#hex == 6 or #hex == 8, "Invalid hex color fromat. Must be #RRGGBB or #RRGGBBAA")
 
     local r = tonumber(hex:sub(1, 2), 16)
     local g = tonumber(hex:sub(3, 4), 16)
@@ -64,6 +64,6 @@ function color.form_hex(hex)
     return color.from_rgba(r, g, b, a)
 end
 
-lib_module.rgba = color.form_rgba
-lib_module.rgb = color.form_rgb
-lib_module.hex = color.form_hex
+lib_module.rgba = color.from_rgba
+lib_module.rgb = color.from_rgb
+lib_module.hex = color.from_hex
