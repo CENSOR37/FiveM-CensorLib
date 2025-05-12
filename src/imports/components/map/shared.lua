@@ -96,3 +96,11 @@ function map:set(key, value)
         self.index[key] = self.size
     end
 end
+
+lib_module = setmetatable({
+    new = map.new,
+}, {
+    __call = function(_, ...)
+        return map.new(...)
+    end,
+})
