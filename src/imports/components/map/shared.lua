@@ -1,0 +1,98 @@
+local table_wipe = table.wipe
+
+-- Map class: ordered key-value map
+local map = {}
+map.__index = map
+
+function map.new()
+    local self = setmetatable({}, map)
+    self.data = {}
+    self.index = {}
+    self.size = 0
+
+    self:clear()
+
+    return self
+end
+
+--- Clear all entries in the map
+--- @return nil
+function map:clear()
+    table_wipe(self.data)
+    table_wipe(self.index)
+
+    self.size = 0
+end
+
+--- Delete an entry by key
+---@param key string|number|boolean
+---@return boolean true if entry existed and was removed
+function map:delete(key)
+    lib.validate.type.assert(key, "string", "number", "boolean")
+
+    local pos = self.index[key]
+    if not (pos) then return false end
+
+    -- remove element from data array
+    table.remove(self.data, pos)
+    self.size = #self.data
+
+    -- rebuild index for all entries
+    table_wipe(self.index)
+    for i, entry in ipairs(self.data) do
+        self.index[entry.key] = i
+    end
+
+    return true
+end
+
+--- Call a function for each key-value pair
+---@param func function
+---@return nil
+function map:for_each(func)
+    lib.validate.type.assert(func, "function")
+
+    for _, entry in ipairs(self.data) do
+        func(entry.key, entry.value)
+    end
+end
+
+--- Retrieve a value by key
+---@param key string|number|boolean
+---@return any
+function map:get(key)
+    lib.validate.type.assert(key, "string", "number", "boolean")
+
+    local pos = self.index[key]
+
+    return pos and self.data[pos].value or nil
+end
+
+--- Check if a key exists
+---@param key string|number|boolean
+---@return boolean
+function map:has(key)
+    lib.validate.type.assert(key, "string", "number", "boolean")
+
+    return self.index[key] ~= nil
+end
+
+--- Set a value for a key (insert or update)
+---@param key string|number|boolean
+---@param value any
+---@return nil
+function map:set(key, value)
+    lib.validate.type.assert(key, "string", "number", "boolean")
+
+    local pos = self.index[key]
+
+    if (pos) then
+        self.data[pos].value = value
+    else
+        local entry = { key = key, value = value }
+        table.insert(self.data, entry)
+
+        self.size = #self.data
+        self.index[key] = self.size
+    end
+end
