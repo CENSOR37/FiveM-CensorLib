@@ -15,10 +15,10 @@ end
 
 function color:hex()
     if (self.a == 255) then
-        return string.fromat("%02X%02X%02X", self.r, self.g, self.b)
+        return string.format("%02X%02X%02X", self.r, self.g, self.b)
     end
 
-    return string.fromat("%02X%02X%02X%02X", self.r, self.g, self.b, self.a)
+    return string.format("%02X%02X%02X%02X", self.r, self.g, self.b, self.a)
 end
 
 -- static funcction
@@ -52,7 +52,7 @@ function color.from_hex(hex)
 
     hex = hex:gsub("#", ""):upper()
 
-    assert(#hex == 6 or #hex == 8, "Invalid hex color fromat. Must be #RRGGBB or #RRGGBBAA")
+    assert(#hex == 6 or #hex == 8, "Invalid hex color format. Must be #RRGGBB or #RRGGBBAA")
 
     local r = tonumber(hex:sub(1, 2), 16)
     local g = tonumber(hex:sub(3, 4), 16)
