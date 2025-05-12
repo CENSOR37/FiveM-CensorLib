@@ -37,6 +37,14 @@ local function draw_text_3d_dbg(text, point)
     native.draw_text(x, y)
 end
 
+local function draw_origin_dbg(colshape)
+    local origin = colshape.origin
+    local position = GetEntityCoords(PlayerPedId(), false)
+    local dist = #(origin.xyz - position)
+    native.draw_marker(28, origin.x, origin.y, origin.z, 0, 0, 0, 0, 0, 0, 0.5, 0.5, 0.5, 255, 0, 0, 255, false, false, 2, false, nil, nil, false)
+    draw_text_3d_dbg(("%.4f"):format(dist), origin)
+end
+
 local function colshape_classwarp(class, ...)
     return setmetatable({
         new = class.new,
@@ -55,7 +63,10 @@ local colshape = {}
 colshape.__index = colshape
 
 function colshape.new()
-    return setmetatable({}, colshape)
+    local self = {}
+    self.origin = vec(0.0, 0.0, 0.0)
+
+    return setmetatable(self, colshape)
 end
 
 function colshape:is_position_inside(position)
@@ -63,6 +74,9 @@ function colshape:is_position_inside(position)
 end
 
 function colshape:draw_debug()
+    if (lib.is_server) then return end
+
+    draw_origin_dbg(self)
 end
 
 local colshape_circle = {}
@@ -75,6 +89,8 @@ function colshape_circle.new(position, radius)
     local self = setmetatable({}, colshape_circle)
     self.radius = numdeci(radius)
     self.position = vec(position.x, position.y)
+    self.origin = vec(position.x, position.y, 0.0)
+
     return self
 end
 
@@ -86,17 +102,16 @@ end
 function colshape_circle:draw_debug()
     if (lib.is_server) then return end
 
+    draw_origin_dbg(self)
+
     local ped = native.player_ped_id()
     local coords = native.get_entity_coords(ped)
     local is_local_ped_inside = self:is_position_inside(coords)
     local color = is_local_ped_inside and { r = 0, g = 255, b = 0, a = 75 } or { r = 0, g = 0, b = 255, a = 75 }
-    local dist = #(coords.xy - self.position)
 
     local pos = self.position
     local rad = self.radius
     native.draw_marker(1, pos.x, pos.y, -10000.0, 0, 0, 0, 0, 0, 0, rad * 2.0, rad * 2.0, 20000.0, color.r, color.g, color.b, color.a, false, false, 2, false, nil, nil, false)
-
-    draw_text_3d_dbg(("%.4f"):format(dist), vector3(pos.x, pos.y, 0.0))
 end
 
 -- colshape_sphere
@@ -111,6 +126,8 @@ function colshape_sphere.new(position, radius)
     local self = setmetatable(colshape.new(), colshape_sphere)
     self.radius = radius
     self.position = vec(position.x, position.y, position.z)
+    self.origin = vec(position.x, position.y, position.z)
+
     return self
 end
 
@@ -121,15 +138,14 @@ end
 function colshape_sphere:draw_debug()
     if (lib.is_server) then return end
 
+    draw_origin_dbg(self)
+
     local f_radius = self.radius + 0.0
     local ped = native.player_ped_id()
     local coords = native.get_entity_coords(ped)
     local is_local_ped_inside = self:is_position_inside(coords)
     local color = is_local_ped_inside and { r = 0, g = 255, b = 0, a = 75 } or { r = 0, g = 0, b = 255, a = 75 }
     native.draw_marker(28, self.position.x, self.position.y, self.position.z, 0, 0, 0, 0, 0, 0, f_radius, f_radius, f_radius, color.r, color.g, color.b, color.a, false, false, 0, false, nil, nil, false)
-
-    local dist = #(coords - self.position)
-    draw_text_3d_dbg(("%.4f"):format(dist), self.position)
 end
 
 -- colshape_poly
@@ -156,6 +172,12 @@ function colshape_poly.new(in_points, in_min_z, in_max_z)
     self.polygon = glm.polygon.new(self.points)
     self.thickness = (self.max_z - self.min_z) / 4.0
 
+    local origin = vec(0.0, 0.0, 0.0)
+    for i = 1, #self.points do
+        origin = origin + self.points[i]
+    end
+    self.origin = origin / #self.points
+
     return self
 end
 
@@ -166,6 +188,8 @@ end
 
 function colshape_poly:draw_debug()
     if (lib.is_server) then return end
+
+    draw_origin_dbg(self)
 
     local ped                 = native.player_ped_id()
     local coords              = native.get_entity_coords(ped)
@@ -192,8 +216,6 @@ function colshape_poly:draw_debug()
         native.draw_line(cx, cy, min_z, nx, ny, min_z, 255, 0, 0, 255)
         native.draw_line(cx, cy, min_z + z_offset, nx, ny, min_z + z_offset, 255, 0, 0, 255)
         native.draw_line(cx, cy, min_z, cx, cy, min_z + z_offset, 255, 0, 0, 255)
-
-        draw_text_3d_dbg(tostring(i), vec(cx, cy, min_z + z_offset))
     end
 end
 
