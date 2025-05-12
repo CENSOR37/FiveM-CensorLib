@@ -68,7 +68,9 @@ end
 function map:for_each(func)
     lib.validate.type.assert(func, "function")
 
-    for _, entry in ipairs(self.data) do
+    for i = 1, self.size, 1 do
+        local entry = self.data[i]
+
         func(entry.key, entry.value)
     end
 end
