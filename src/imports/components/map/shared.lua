@@ -15,6 +15,22 @@ function map.new()
     return self
 end
 
+function map.from_array(array)
+    lib.validate.type.assert(array, "table")
+
+    local self = map.new()
+
+    for i = 1, #array do
+        local value = array[i]
+        lib.validate.type.assert(value, "table")
+        assert(#value == 2, "map constructor requires a table with two elements")
+
+        self:set(value[1], value[2])
+    end
+
+    return self
+end
+
 --- Clear all entries in the map
 --- @return nil
 function map:clear()
@@ -99,8 +115,11 @@ end
 
 lib_module = setmetatable({
     new = map.new,
+    from_array = map.from_array,
 }, {
     __call = function(_, ...)
-        return map.new(...)
+        local args = { ... }
+
+        return map.from_array(args)
     end,
 })
