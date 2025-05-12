@@ -99,6 +99,14 @@ function colshape_circle:is_position_inside(position)
     return #(point - self.position) <= self.radius
 end
 
+function colshape_circle:draw(r, g, b, a)
+    if (lib.is_server) then return end
+
+    local pos = self.position
+    local rad = self.radius
+    native.draw_marker(1, pos.x, pos.y, -10000.0, 0, 0, 0, 0, 0, 0, rad * 2.0, rad * 2.0, 20000.0, r, g, b, a, false, false, 2, false, nil, nil, false)
+end
+
 function colshape_circle:draw_debug()
     if (lib.is_server) then return end
 
@@ -109,9 +117,7 @@ function colshape_circle:draw_debug()
     local is_local_ped_inside = self:is_position_inside(coords)
     local color = is_local_ped_inside and { r = 0, g = 255, b = 0, a = 75 } or { r = 0, g = 0, b = 255, a = 75 }
 
-    local pos = self.position
-    local rad = self.radius
-    native.draw_marker(1, pos.x, pos.y, -10000.0, 0, 0, 0, 0, 0, 0, rad * 2.0, rad * 2.0, 20000.0, color.r, color.g, color.b, color.a, false, false, 2, false, nil, nil, false)
+    self:draw(color.r, color.g, color.b, color.a)
 end
 
 -- colshape_sphere
@@ -135,17 +141,24 @@ function colshape_sphere:is_position_inside(position)
     return #(position - self.position) <= self.radius
 end
 
+function colshape_sphere:draw(r, g, b, a)
+    if (lib.is_server) then return end
+
+    local f_radius = numdeci(self.radius)
+    native.draw_marker(28, self.position.x, self.position.y, self.position.z, 0, 0, 0, 0, 0, 0, f_radius, f_radius, f_radius, r, g, b, a, false, false, 0, false, nil, nil, false)
+end
+
 function colshape_sphere:draw_debug()
     if (lib.is_server) then return end
 
     draw_origin_dbg(self)
 
-    local f_radius = self.radius + 0.0
     local ped = native.player_ped_id()
     local coords = native.get_entity_coords(ped)
     local is_local_ped_inside = self:is_position_inside(coords)
     local color = is_local_ped_inside and { r = 0, g = 255, b = 0, a = 75 } or { r = 0, g = 0, b = 255, a = 75 }
-    native.draw_marker(28, self.position.x, self.position.y, self.position.z, 0, 0, 0, 0, 0, 0, f_radius, f_radius, f_radius, color.r, color.g, color.b, color.a, false, false, 0, false, nil, nil, false)
+
+    self:draw(color.r, color.g, color.b, color.a)
 end
 
 -- colshape_poly
@@ -186,20 +199,13 @@ function colshape_poly:is_position_inside(position)
     return glm_polygon_contains(self.polygon, point, self.thickness)
 end
 
-function colshape_poly:draw_debug()
+function colshape_poly:draw(r, g, b, a, draw_lines)
     if (lib.is_server) then return end
 
-    draw_origin_dbg(self)
-
-    local ped                 = native.player_ped_id()
-    local coords              = native.get_entity_coords(ped)
-    local is_local_ped_inside = self:is_position_inside(coords)
-    local color               = is_local_ped_inside and { r = 0, g = 255, b = 0, a = 75 } or { r = 0, g = 0, b = 255, a = 75 }
-    local points              = self.points
-    local min_z               = self.min_z or -10000.0
-    local top_z               = self.max_z or 10000.0
-    local z_offset            = top_z - min_z
-    local r, g, b, a          = color.r, color.g, color.b, color.a
+    local points   = self.points
+    local min_z    = self.min_z or -10000.0
+    local top_z    = self.max_z or 10000.0
+    local z_offset = top_z - min_z
 
     for i = 1, #points do
         local current_point = points[i]
@@ -213,10 +219,26 @@ function colshape_poly:draw_debug()
         native.draw_poly(cx, cy, min_z + z_offset, nx, ny, min_z + z_offset, cx, cy, min_z, r, g, b, a)
         native.draw_poly(nx, ny, min_z + z_offset, nx, ny, min_z, cx, cy, min_z, r, g, b, a)
 
-        native.draw_line(cx, cy, min_z, nx, ny, min_z, 255, 0, 0, 255)
-        native.draw_line(cx, cy, min_z + z_offset, nx, ny, min_z + z_offset, 255, 0, 0, 255)
-        native.draw_line(cx, cy, min_z, cx, cy, min_z + z_offset, 255, 0, 0, 255)
+        if (draw_lines) then
+            native.draw_line(cx, cy, min_z, nx, ny, min_z, 255, 0, 0, 255)
+            native.draw_line(cx, cy, min_z + z_offset, nx, ny, min_z + z_offset, 255, 0, 0, 255)
+            native.draw_line(cx, cy, min_z, cx, cy, min_z + z_offset, 255, 0, 0, 255)
+        end
     end
+end
+
+function colshape_poly:draw_debug()
+    if (lib.is_server) then return end
+
+    draw_origin_dbg(self)
+
+    local ped                 = native.player_ped_id()
+    local coords              = native.get_entity_coords(ped)
+    local is_local_ped_inside = self:is_position_inside(coords)
+    local color               = is_local_ped_inside and { r = 0, g = 255, b = 0, a = 75 } or { r = 0, g = 0, b = 255, a = 75 }
+    local r, g, b, a          = color.r, color.g, color.b, color.a
+
+    self:draw(r, g, b, a, true)
 end
 
 lib_module.circle = colshape_classwarp(colshape_circle)
