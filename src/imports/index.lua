@@ -13,18 +13,6 @@ local native = {
 }
 local is_server = native.is_duplicity_version()
 
-local function bind_once(is_network, eventname, listener)
-    local event
-    local fn = function(...)
-        lib.off(event)
-        listener(...)
-    end
-
-    event = is_network and native.register_net_event(eventname, fn) or native.add_event_handler(eventname, fn)
-
-    return event
-end
-
 local function create_evnet_handler(listener, is_local_ctx)
     return function(...)
         local src = source
@@ -59,6 +47,19 @@ local function on_remote(eventName, listener)
     local handler = create_evnet_handler(listener, false)
 
     return native.register_net_event(eventName, handler)
+end
+
+local function bind_once(is_remote, eventname, listener)
+    local event
+
+    local handler = function(...)
+        lib.off(event)
+        listener(...)
+    end
+
+    event = is_remote and on_remote(eventname, handler) or on_local(eventname, handler)
+
+    return event
 end
 
 lib.is_server = is_server
