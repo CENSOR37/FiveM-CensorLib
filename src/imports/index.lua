@@ -10,6 +10,8 @@ local native = {
     trigger_client_event = TriggerClientEvent,
     is_duplicity_version = IsDuplicityVersion,
     get_invoking_resource = GetInvokingResource,
+    trigger_latent_server_event = TriggerLatentServerEvent,
+    trigger_latent_client_event = TriggerLatentClientEvent,
 }
 local is_server = native.is_duplicity_version()
 
@@ -87,6 +89,7 @@ lib.on = on_local
 lib.off = native.remove_event_handler
 lib.emit = native.trigger_event
 lib[("emit_%s"):format(lib.service_inversed)] = lib.is_server and native.trigger_client_event or native.trigger_server_event
+lib[("emit_%s_latent"):format(lib.service_inversed)] = lib.is_server and native.trigger_latent_client_event or native.trigger_latent_server_event
 lib.emit_all_clients = lib.is_server and function(eventname, ...) return native.trigger_client_event(eventname, -1, ...) end or nil
 lib.once = function(eventname, listener) return bind_once(false, eventname, listener) end
 lib[("on_%s"):format(lib.service_inversed)] = on_remote
