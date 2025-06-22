@@ -25,14 +25,24 @@ local function bind_once(is_network, eventname, listener)
     return event
 end
 
-local function on_remote(eventName, cb)
-    local remote_cb = function(...)
-        if not (native.get_invoking_resource()) then -- invoking resource is nil if it's a remote event
-            return cb(...)
+local function on_remote(eventName, listener)
+    local handler
+
+    if (is_server) then
+        function handler(...)
+            if (source == "") then return end
+
+            listener(...)
+        end
+    else
+        function handler(...)
+            if (source ~= 65535) then return end
+
+            listener(...)
         end
     end
 
-    return native.register_net_event(eventName, remote_cb)
+    return native.register_net_event(eventName, handler)
 end
 
 lib.is_server = is_server
