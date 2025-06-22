@@ -25,42 +25,38 @@ local function bind_once(is_network, eventname, listener)
     return event
 end
 
-local function on_context(eventName, listener)
-    local handler
+local function create_evnet_handler(listener, is_local_ctx)
+    return function(...)
+        local src = source
+        local is_from_remote = false
+        local should_proceed = false
 
-    if (is_server) then
-        function handler(...)
-            if (source ~= "") then return end
-
-            listener(...)
+        if (is_server) then
+            is_from_remote = src ~= ""
+        else
+            is_from_remote = src == 65535
         end
-    else
-        function handler(...)
-            if (source == 65535) then return end
 
+        if (is_from_remote and not is_local_ctx) then
+            should_proceed = true
+        elseif (not is_from_remote and is_local_ctx) then
+            should_proceed = true
+        end
+
+        if (should_proceed) then
             listener(...)
         end
     end
+end
+
+local function on_context(eventName, listener)
+    local handler = create_evnet_handler(listener, true)
 
     return native.add_event_handler(eventName, handler)
 end
 
 local function on_remote(eventName, listener)
-    local handler
-
-    if (is_server) then
-        function handler(...)
-            if (source == "") then return end
-
-            listener(...)
-        end
-    else
-        function handler(...)
-            if (source ~= 65535) then return end
-
-            listener(...)
-        end
-    end
+    local handler = create_evnet_handler(listener, false)
 
     return native.register_net_event(eventName, handler)
 end
