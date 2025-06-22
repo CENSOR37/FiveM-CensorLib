@@ -49,7 +49,7 @@ local function create_evnet_handler(listener, is_local_ctx)
     end
 end
 
-local function on_context(eventName, listener)
+local function on_local(eventName, listener)
     local handler = create_evnet_handler(listener, true)
 
     return native.add_event_handler(eventName, handler)
@@ -82,7 +82,7 @@ lib.on_next_tick = function(handler)
     return lib.timer.new(handler, 0, false)
 end
 
-lib.on = on_context
+lib.on = on_local
 lib.off = native.remove_event_handler
 lib.emit = native.trigger_event
 lib[("emit_%s"):format(lib.service_inversed)] = lib.is_server and native.trigger_client_event or native.trigger_server_event
