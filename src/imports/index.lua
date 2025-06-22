@@ -25,6 +25,26 @@ local function bind_once(is_network, eventname, listener)
     return event
 end
 
+local function on_context(eventName, listener)
+    local handler
+
+    if (is_server) then
+        function handler(...)
+            if (source ~= "") then return end
+
+            listener(...)
+        end
+    else
+        function handler(...)
+            if (source == 65535) then return end
+
+            listener(...)
+        end
+    end
+
+    return native.add_event_handler(eventName, handler)
+end
+
 local function on_remote(eventName, listener)
     local handler
 
@@ -66,7 +86,7 @@ lib.on_next_tick = function(handler)
     return lib.timer.new(handler, 0, false)
 end
 
-lib.on = native.add_event_handler
+lib.on = on_context
 lib.off = native.remove_event_handler
 lib.emit = native.trigger_event
 lib[("emit_%s"):format(lib.service_inversed)] = lib.is_server and native.trigger_client_event or native.trigger_server_event
