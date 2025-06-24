@@ -95,10 +95,9 @@ function set.from_array(array)
     return self
 end
 
--- COMPATIBILITY
+-- ALIASES
 set.remove = set.delete
-set.contain = set.has
-
+set.contains = set.has
 
 lib_module = setmetatable({
     new = set.new,
