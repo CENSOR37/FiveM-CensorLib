@@ -10,7 +10,6 @@ function set.new(...)
     self.size = 0
 
     self = setmetatable(self, set)
-    self:clear()
 
     local args = { ... }
     for i = 1, #args do
