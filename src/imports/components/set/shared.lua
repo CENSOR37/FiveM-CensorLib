@@ -21,16 +21,12 @@ function set.new(...)
     return self
 end
 
----@param value string|number|boolean|table
----@return nil
 function set:has(value)
     lib.validate.type.assert(value, "string", "number", "boolean", "table")
 
     return self.index[value] ~= nil
 end
 
----@param value string|number|boolean|table
----@return nil
 function set:add(value)
     lib.validate.type.assert(value, "string", "number", "boolean", "table")
 
@@ -42,15 +38,12 @@ function set:add(value)
     self.size = self.size + 1
 end
 
----@return nil
 function set:clear()
     self.data = table_wipe(self.data)
     self.index = table_wipe(self.index)
     self.size = 0
 end
 
----@param value string|number|boolean|table
----@return boolean
 function set:delete(value)
     lib.validate.type.assert(value, "string", "number", "boolean", "table")
 
@@ -73,8 +66,6 @@ function set:delete(value)
     return true
 end
 
----@param callback_fn function
----@return nil
 function set:for_each(callback_fn)
     lib.validate.type.assert(callback_fn, "function")
     for i = 1, self.size do
