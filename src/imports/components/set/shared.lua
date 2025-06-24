@@ -91,6 +91,11 @@ function set:array()
     return array
 end
 
+-- ALIASES
+set.remove = set.delete
+set.contains = set.has
+set.empty = set.clear
+
 function set.from_array(array)
     lib.validate.type.assert(array, "table")
 
@@ -102,11 +107,6 @@ function set.from_array(array)
 
     return self
 end
-
--- ALIASES
-set.remove = set.delete
-set.contains = set.has
-set.empty = set.clear
 
 lib_module = setmetatable({
     new = set.new,
