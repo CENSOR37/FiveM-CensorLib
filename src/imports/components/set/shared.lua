@@ -7,10 +7,10 @@ function set.new(...)
     local self = {}
     self.data = {}
     self.index = {}
-    self.length = 0
+    self.size = 0
 
     self = setmetatable(self, set)
-    self:empty()
+    self:clear()
 
     local args = { ... }
     for i = 1, #args do
@@ -21,113 +21,84 @@ function set.new(...)
     return self
 end
 
+---@param value string|number|boolean|table
+---@return nil
+function set:has(value)
+    lib.validate.type.assert(value, "string", "number", "boolean", "table")
+
+    return self.index[value] ~= nil
+end
+
+---@param value string|number|boolean|table
+---@return nil
+function set:add(value)
+    lib.validate.type.assert(value, "string", "number", "boolean", "table")
+
+    if (self:has(value)) then return end
+
+    local index = #self.data + 1
+    self.data[index] = value
+    self.index[value] = index
+    self.size = self.size + 1
+end
+
+---@return nil
+function set:clear()
+    self.data = table_wipe(self.data)
+    self.index = table_wipe(self.index)
+    self.size = 0
+end
+
+---@param value string|number|boolean|table
+---@return boolean
+function set:delete(value)
+    lib.validate.type.assert(value, "string", "number", "boolean", "table")
+
+    if not (self:has(value)) then return false end
+
+    local index = self.index[value]
+    local last_index = #self.data
+    local last_value = self.data[last_index]
+
+    if (index ~= last_index) then
+        self.data[index] = last_value
+        self.index[last_value] = index
+    end
+
+    self.data[last_index] = nil
+    self.index[value] = nil
+
+    self.size = self.size - 1
+
+    return true
+end
+
+---@param callback_fn function
+---@return nil
+function set:for_each(callback_fn)
+    lib.validate.type.assert(callback_fn, "function")
+    for i = 1, self.size do
+        local value = self.data[i]
+        callback_fn(value)
+    end
+end
+
 function set.from_array(array)
     lib.validate.type.assert(array, "table")
 
     local self = set.new()
-    for _, value in pairs(array) do
+    for i = 1, #array do
+        local value = array[i]
         self:add(value)
     end
 
     return self
 end
 
-function set:contain(value)
-    return self.index[value] ~= nil
-end
+-- COMPATIBILITY
+set.remove = set.delete
+set.contain = set.has
 
-function set:contains(...)
-    local args = { ... }
-
-    for i = 1, #args do
-        if not (self:contain(args[i])) then return false end
-    end
-
-    return true
-end
-
-function set:append(...)
-    local args = { ... }
-    for i = 1, #args do
-        local other_set = args[i]
-        lib.validate.type.assert(other_set, "table")
-        lib.validate.type.assert(other_set.data, "table")
-
-        for j = 1, #other_set.data do
-            local value = other_set.data[j]
-            self:add(value)
-        end
-    end
-end
-
-function set:array()
-    local array = {}
-    for i = 1, self.length, 1 do
-        local value = self.data[i]
-        array[i] = value
-    end
-    return array -- return clone of data instead of reference
-end
-
-function set:add(value)
-    if (self:contain(value)) then return end
-
-    lib.validate.type.assert(value, "string", "number", "boolean", "table")
-
-    table.insert(self.data, value)
-    self.index[value] = #self.data
-    self.length = self.length + 1
-end
-
-function set:remove(value)
-    lib.validate.type.assert(value, "string", "number", "boolean", "table")
-    if not (self:contain(value)) then return end
-
-    local index = self.index[value]
-    table.remove(self.data, index)
-
-    self.length = self.length - 1
-
-    -- update index on remove
-    self.index = table_wipe(self.index)
-    for i = 1, #self.data do
-        local value = self.data[i]
-        if (value ~= nil) then
-            self.index[value] = i
-        end
-    end
-end
-
-function set:size()
-    return self.length
-end
-
-function set:empty()
-    self.data = table_wipe(self.data)
-    self.index = table_wipe(self.index)
-    self.length = 0
-end
-
-function set:foreach(callback)
-    lib.validate.type.assert(callback, "function")
-
-    for i = 1, self.length do
-        local value = self.data[i]
-        callback(value)
-    end
-end
-
-function set:has(value)
-    return self:contain(value)
-end
-
-function set:clear()
-    self:empty()
-end
-
-function set:delete(value)
-    self:remove(value)
-end
 
 lib_module = setmetatable({
     new = set.new,
