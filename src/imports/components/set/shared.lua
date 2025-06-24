@@ -83,6 +83,14 @@ function set:for_each(callback_fn)
     end
 end
 
+function set:array()
+    local array = {}
+    for i = 1, self.size do
+        array[i] = self.data[i]
+    end
+    return array
+end
+
 function set.from_array(array)
     lib.validate.type.assert(array, "table")
 
@@ -98,6 +106,7 @@ end
 -- ALIASES
 set.remove = set.delete
 set.contains = set.has
+set.empty = set.clear
 
 lib_module = setmetatable({
     new = set.new,
