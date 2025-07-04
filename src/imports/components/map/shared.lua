@@ -4,11 +4,17 @@ local table_wipe = table.wipe
 local map = {}
 map.__index = map
 
-function map.new()
-    local self = setmetatable({}, map)
+function map.default()
+    local self = {}
     self.data = {}
     self.index = {}
     self.size = 0
+
+    return self
+end
+
+function map.new()
+    local self = setmetatable(map.default(), map)
 
     self:clear()
 
@@ -116,6 +122,7 @@ function map:set(key, value)
 end
 
 lib_module = setmetatable({
+    class = map,
     new = map.new,
     from_array = map.from_array,
 }, {
