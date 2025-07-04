@@ -1,6 +1,8 @@
 --[[ Init ]]
 assert(_VERSION:find("5.4"), "^1[ Please enable Lua 5.4 ]^0")
 
+local msgpack_pack_args = msgpack.pack_args
+
 local native = {
     register_net_event = RegisterNetEvent,
     add_event_handler = AddEventHandler,
@@ -12,6 +14,7 @@ local native = {
     get_invoking_resource = GetInvokingResource,
     trigger_latent_server_event = TriggerLatentServerEvent,
     trigger_latent_client_event = TriggerLatentClientEvent,
+    trigger_client_event_internal = TriggerClientEventInternal,
 }
 local is_server = native.is_duplicity_version()
 
@@ -94,6 +97,14 @@ lib.emit_all_clients = lib.is_server and function(eventname, ...) return native.
 lib.once = function(eventname, listener) return bind_once(false, eventname, listener) end
 lib[("on_%s"):format(lib.service_inversed)] = on_remote
 lib[("once_%s"):format(lib.service_inversed)] = function(eventname, listener) return bind_once(true, eventname, listener) end
+lib.emit_clients = lib.is_server and function(eventname, clients, ...)
+    local payload = msgpack_pack_args(...)
+    local payload_len = payload:len()
+
+    for i = 1, #clients do
+        native.trigger_client_event_internal(eventname, clients[i], payload, payload_len)
+    end
+end or nil
 
 lib.uuid = lib.random.uuid
 
