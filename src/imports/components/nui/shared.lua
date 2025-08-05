@@ -2,7 +2,9 @@ local native = {
     send_nui_message = SendNuiMessage,
     set_nui_focus = SetNuiFocus,
     is_nui_focused = IsNuiFocused,
-    register_nui_callback = RegisterNuiCallback,
+    register_nui_callback = RegisterNuiCallback, -- only accept 1 listener at a time, need delegate if rely on this
+    register_nui_callback_type = RegisterNuiCallbackType,
+    add_event_handler = AddEventHandler,
 }
 
 local meta_index = {}
@@ -32,7 +34,11 @@ function meta_index.on(name, listener)
     lib.validate.type.assert(name, "string")
     lib.validate.type.assert(listener, "function")
 
-    native.register_nui_callback(name, function(data, cb)
+    local nui_event = "__cfx_nui:" .. name
+
+    native.register_nui_callback_type(name)
+
+    local event_data = native.add_event_handler(nui_event, function(data, cb)
         local results = { listener(table.unpack(data)) }
         if (#results <= 0) then
             cb({ ok = true })
@@ -41,6 +47,8 @@ function meta_index.on(name, listener)
 
         cb({ ok = true, results = results })
     end)
+
+    return event_data
 end
 
 function meta_index.on_ready(listener)
