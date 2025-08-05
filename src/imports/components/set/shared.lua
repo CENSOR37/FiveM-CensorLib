@@ -83,8 +83,10 @@ end
 
 -- ALIASES
 set.remove = set.delete
-set.contains = set.has
 set.empty = set.clear
+
+-- COMPATIBILITY, DEPRICATED WILL BE REMOVED
+set.contain = set.has
 
 function set.from_array(array)
     lib.validate.type.assert(array, "table")
