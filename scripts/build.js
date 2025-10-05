@@ -2,6 +2,7 @@ const Chokidar = require('chokidar');
 const fse = require('fs-extra');
 const buildConfig = JSON.parse(fse.readFileSync('./build-config.json', 'utf8'));
 const luamin = require('lua-format')
+const is_outout_path_set = buildConfig.output.length > 0;
 
 buildConfig.output = `${buildConfig.output}${buildConfig.name}/`;
 
@@ -81,10 +82,15 @@ function buildResource() {
     // find and remove watermark, if exists, sorry
     sourceOutput = sourceOutput.replace(watermark, '');
     fse.outputFileSync(`./build/imports.lua`, sourceOutput);
-    fse.outputFileSync(`${buildConfig.output}/imports.lua`, sourceOutput);
 
-    // copy all files in "test" to build
-    fse.copySync("./test", `${buildConfig.output}/test`);
+    if (is_outout_path_set) {
+        fse.outputFileSync(`${buildConfig.output}/imports.lua`, sourceOutput);
+        
+        // copy all files in "test" to build
+        fse.copySync("./test", `${buildConfig.output}/test`);
+    }else{
+        fse.outputFileSync(`./imports.lua`, sourceOutput);
+    }
 }
 
 Chokidar.watch(["./src", "./test"]).on('change', async (event, path) => {
