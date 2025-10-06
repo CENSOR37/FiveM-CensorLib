@@ -32,4 +32,8 @@ function math.round(value, places) -- credit overextended
     return math.floor(value + 0.5)
 end
 
+function math.in_range(value, min, max)
+    return value >= min and value <= max
+end
+
 lib_module = math
