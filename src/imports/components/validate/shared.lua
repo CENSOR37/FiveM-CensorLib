@@ -2,28 +2,25 @@ local lua_assert = assert
 local validate = {}
 
 function validate.type(value, ...)
-    local types = { ... }
-    if (#types == 0) then return true end
-
-    local map_type = {}
-    for i = 1, #types, 1 do
-        local validate_type = types[i]
-        lua_assert(type(validate_type) == "string", "bad argument types, only expected string") -- should never use anyhing else than string
-        map_type[validate_type] = true
+    local num_types = select("#", ...)
+    if (num_types == 0) then
+        return false, "no types specified"
     end
 
     local value_type = type(value)
+    local need = ""
 
-    local matches = (map_type[value_type] ~= nil)
+    for i = 1, num_types do
+        local validate_type = select(i, ...)
+        lua_assert(type(validate_type) == "string", "bad argument types, only expected string") -- should never use anyhing else than string
+        need = need .. (i > 1 and ", " or "") .. validate_type
 
-    if not (matches) then
-        local require_types = table.concat(types, ", ")
-        local error_message = ("bad value (%s expected, got %s)"):format(require_types, value_type)
-
-        return false, error_message
+        if (value_type == validate_type) then
+            return true
+        end
     end
 
-    return true
+    return false, ("bad value (%s expected, got %s)"):format(need, value_type)
 end
 
 lib_module = setmetatable({}, {
