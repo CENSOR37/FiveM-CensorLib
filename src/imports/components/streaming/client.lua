@@ -50,10 +50,15 @@ local function request_streaming(has_loaded, request, ...)
         return true
     end
 
+    local timeout = GetGameTimer() + 10000
+
     request(...)
 
     while not has_loaded(...) do
         native.citizen_wait(0)
+        if (GetGameTimer() > timeout) then
+            return false
+        end
     end
 
     return true
