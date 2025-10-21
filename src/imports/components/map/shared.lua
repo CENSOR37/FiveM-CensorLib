@@ -44,8 +44,6 @@ end
 ---@param key string|number|boolean
 ---@return boolean true if entry existed and was removed
 function map:delete(key)
-    lib.validate.type.assert(key, "string", "number", "boolean")
-
     local pos = self.index[key]
     if not (pos) then return false end
 
@@ -79,8 +77,6 @@ end
 ---@param key string|number|boolean
 ---@return any
 function map:get(key)
-    lib.validate.type.assert(key, "string", "number", "boolean")
-
     local pos = self.index[key]
 
     return pos and self.data[pos].value or nil
@@ -90,8 +86,6 @@ end
 ---@param key string|number|boolean
 ---@return boolean
 function map:has(key)
-    lib.validate.type.assert(key, "string", "number", "boolean")
-
     return self.index[key] ~= nil
 end
 
@@ -100,8 +94,6 @@ end
 ---@param value any
 ---@return nil
 function map:set(key, value)
-    lib.validate.type.assert(key, "string", "number", "boolean")
-
     local pos = self.index[key]
 
     if (pos) then
