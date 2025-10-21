@@ -49,7 +49,7 @@ function map:delete(key)
 
     -- remove element from data array
     table.remove(self.data, pos)
-    self.size = #self.data
+    self.size -= 1
 
     -- rebuild index for all entries
     table_wipe(self.index)
@@ -102,7 +102,7 @@ function map:set(key, value)
         local entry = { key = key, value = value }
         table.insert(self.data, entry)
 
-        self.size = #self.data
+        self.size += 1
         self.index[key] = self.size
     end
 end
