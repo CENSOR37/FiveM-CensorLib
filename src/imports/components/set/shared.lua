@@ -21,14 +21,10 @@ function set.new(...)
 end
 
 function set:has(value)
-    lib.validate.type.assert(value, "string", "number", "boolean", "table")
-
     return self.index[value] ~= nil
 end
 
 function set:add(value)
-    lib.validate.type.assert(value, "string", "number", "boolean", "table")
-
     if (self:has(value)) then return end
 
     local index = #self.data + 1
@@ -44,8 +40,6 @@ function set:clear()
 end
 
 function set:delete(value)
-    lib.validate.type.assert(value, "string", "number", "boolean", "table")
-
     if not (self:has(value)) then return false end
 
     local index = self.index[value]
@@ -66,7 +60,6 @@ function set:delete(value)
 end
 
 function set:for_each(callback_fn)
-    lib.validate.type.assert(callback_fn, "function")
     for i = 1, self.size do
         local value = self.data[i]
         callback_fn(value)
@@ -90,8 +83,6 @@ set.contain = set.has
 set.contains = set.has
 
 function set.from_array(array)
-    lib.validate.type.assert(array, "table")
-
     local self = set.new()
     for i = 1, #array do
         local value = array[i]

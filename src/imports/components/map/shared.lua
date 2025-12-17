@@ -16,13 +16,10 @@ function map.new()
 end
 
 function map.from_array(array)
-    lib.validate.type.assert(array, "table")
-
     local self = map.new()
 
     for i = 1, #array do
         local value = array[i]
-        lib.validate.type.assert(value, "table")
         assert(#value == 2, "map constructor requires a table with two elements")
 
         self:set(value[1], value[2])
@@ -64,8 +61,6 @@ end
 ---@param func function
 ---@return nil
 function map:for_each(func)
-    lib.validate.type.assert(func, "function")
-
     for i = 1, self.size, 1 do
         local entry = self.data[i]
 
