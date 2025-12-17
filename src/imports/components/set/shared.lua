@@ -51,7 +51,7 @@ function set:delete(value)
         self.index[last_value] = index
     end
 
-    self.data[last_index] = nil
+    table.remove(self.data, last_index)
     self.index[value] = nil
 
     self.size = self.size - 1
