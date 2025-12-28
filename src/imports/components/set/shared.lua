@@ -34,18 +34,24 @@ function set:has(value)
 end
 
 function set:add(value)
-    if (self.index[value]) then return end
+    if (value == nil) then return self end
+
+    if (self.index[value]) then return self end
 
     local new_size = self.size + 1
     self.data[new_size] = value
     self.index[value] = new_size
     self.size = new_size
+
+    return self
 end
 
 function set:clear()
     table_wipe(self.data)
     table_wipe(self.index)
     self.size = 0
+
+    return self
 end
 
 function set:delete(value)
