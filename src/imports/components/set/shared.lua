@@ -108,12 +108,10 @@ end
 
 function set:iterator()
     local i = 0
-    local size = self.size
-    local data = self.data
     return function()
         i = i + 1
-        if (i <= size) then
-            return data[i]
+        if (i <= self.size) then
+            return self.data[i]
         end
     end
 end
