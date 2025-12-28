@@ -1,3 +1,4 @@
+local setmetatable = setmetatable
 local table_wipe = table.wipe
 
 local set = {}
@@ -33,49 +34,48 @@ function set:has(value)
 end
 
 function set:add(value)
-    if (self:has(value)) then return end
+    if (self.index[value]) then return end
 
-    local index = #self.data + 1
-    self.data[index] = value
-    self.index[value] = index
-    self.size = self.size + 1
+    local new_size = self.size + 1
+    self.data[new_size] = value
+    self.index[value] = new_size
+    self.size = new_size
 end
 
 function set:clear()
-    self.data = table_wipe(self.data)
-    self.index = table_wipe(self.index)
+    table_wipe(self.data)
+    table_wipe(self.index)
     self.size = 0
 end
 
 function set:delete(value)
-    if not (self:has(value)) then return false end
-
     local index = self.index[value]
-    local last_index = #self.data
-    local last_value = self.data[last_index]
+    if not (index) then return false end
 
-    if (index ~= last_index) then
-        self.data[index] = last_value
-        self.index[last_value] = index
+    local size = self.size
+    local last_val = self.data[size]
+
+    -- swap the last value into the deleted index
+    if (index ~= size) then
+        self.data[index] = last_val
+        self.index[last_val] = index
     end
 
-    table.remove(self.data, last_index)
+    self.data[size] = nil
     self.index[value] = nil
-
-    self.size = self.size - 1
+    self.size = size - 1
 
     return true
 end
 
 function set:for_each(callback_fn)
     for i = 1, self.size do
-        local value = self.data[i]
-        callback_fn(value)
+        callback_fn(self.data[i])
     end
 end
 
-function set:array()
-    local array = {}
+function set:array(buffer)
+    local array = buffer or {}
     for i = 1, self.size do
         array[i] = self.data[i]
     end
