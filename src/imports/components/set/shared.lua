@@ -3,6 +3,14 @@ local table_wipe = table.wipe
 local set = {}
 set.__index = set
 
+function set:__len()
+    return self.size
+end
+
+function set:__tostring()
+    return string.format("Set(%d)", self.size)
+end
+
 function set.new(...)
     local self = {}
     self.data = {}
