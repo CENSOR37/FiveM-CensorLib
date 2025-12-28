@@ -100,6 +100,18 @@ function set.from_array(array)
     return self
 end
 
+function set:iterator()
+    local i = 0
+    local size = self.size
+    local data = self.data
+    return function()
+        i = i + 1
+        if (i <= size) then
+            return data[i]
+        end
+    end
+end
+
 lib_module = setmetatable({
     new = set.new,
     from_array = set.from_array,
