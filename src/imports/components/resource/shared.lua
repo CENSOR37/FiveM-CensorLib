@@ -57,33 +57,11 @@ function resource:emit(eventname, ...)
     return lib.emit(self:prefix(eventname), ...)
 end
 
-if (lib.is_server) then
-    function resource:emit_client(eventname, client, ...)
-        return lib.emit_client(self:prefix(eventname), client, ...)
-    end
-
-    function resource:emit_all_clients(eventname, ...)
-        return lib.emit_all_clients(self:prefix(eventname), ...)
-    end
-
-    function resource:on_client(eventname, callback)
-        return lib.on_client(self:prefix(eventname), callback)
-    end
-
-    function resource:once_client(eventname, callback)
-        return lib.once_client(self:prefix(eventname), callback)
-    end
-else
-    function resource:emit_server(eventname, ...)
-        return lib.emit_server(self:prefix(eventname), ...)
-    end
-
-    function resource:on_server(eventname, callback)
-        return lib.on_server(self:prefix(eventname), callback)
-    end
-
-    function resource:once_server(eventname, callback)
-        return lib.once_server(self:prefix(eventname), callback)
+for key, value in pairs(lib._event) do
+    if (key ~= "off" and value ~= nil) then
+        resource[key] = function(self, eventname, ...)
+            return value(self:prefix(eventname), ...)
+        end
     end
 end
 
