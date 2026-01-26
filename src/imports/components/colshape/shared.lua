@@ -48,7 +48,7 @@ end
 local function colshape_classwarp(class, ...)
     return setmetatable({
         new = class.new,
-        is_a = function(self, obj)
+        is_a = function(obj)
             return getmetatable(obj) == class
         end,
     }, {
