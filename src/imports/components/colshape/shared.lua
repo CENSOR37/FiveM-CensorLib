@@ -65,6 +65,7 @@ colshape.__index = colshape
 function colshape.new()
     local self = {}
     self.origin = vec(0.0, 0.0, 0.0)
+    self.args = {}
 
     return setmetatable(self, colshape)
 end
@@ -87,6 +88,7 @@ function colshape_circle.new(position, radius)
     lib.validate.type.assert(radius, "number")
 
     local self = setmetatable({}, colshape_circle)
+    self.args = { position, radius }
     self.radius = numdeci(radius)
     self.position = vec(position.x, position.y)
     self.origin = vec(position.x, position.y, 0.0)
@@ -130,6 +132,7 @@ function colshape_sphere.new(position, radius)
     lib.validate.type.assert(radius, "number")
 
     local self = setmetatable(colshape.new(), colshape_sphere)
+    self.args = { position, radius }
     self.radius = radius
     self.position = vec(position.x, position.y, position.z)
     self.origin = vec(position.x, position.y, position.z)
@@ -175,6 +178,7 @@ function colshape_poly.new(in_points, in_min_z, in_max_z)
     lib.validate.type.assert(in_max_z, "number")
 
     local self = setmetatable(colshape.new(), colshape_poly)
+    self.args = { in_points, in_min_z, in_max_z }
     self.points = {}
     self.min_z = numdeci(in_min_z)
     self.max_z = numdeci(in_max_z)
