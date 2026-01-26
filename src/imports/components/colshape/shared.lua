@@ -190,6 +190,13 @@ function colshape_poly.new(in_points, in_min_z, in_max_z)
         origin = origin + self.points[i]
     end
     self.origin = origin / #self.points
+    self.radius = -math.huge
+    for i = 1, #self.points do
+        local dist = #(self.points[i] - self.origin)
+        if (dist > self.radius) then
+            self.radius = dist
+        end
+    end
 
     return self
 end
@@ -206,6 +213,9 @@ function colshape_poly:draw(r, g, b, a, draw_lines)
     local min_z    = self.min_z or -10000.0
     local top_z    = self.max_z or 10000.0
     local z_offset = top_z - min_z
+
+    local f_radius = numdeci(self.radius)
+    native.draw_marker(28, self.origin.x, self.origin.y, self.origin.z, 0, 0, 0, 0, 0, 0, f_radius, f_radius, f_radius, r, g, b, a, false, false, 0, false, nil, nil, false)
 
     for i = 1, #points do
         local current_point = points[i]
