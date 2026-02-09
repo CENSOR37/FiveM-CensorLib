@@ -31,7 +31,10 @@ end
 
 if (is_server) then
     event.on_client = add_net_handler
-    event.emit_client = TriggerClientEvent
+    event.emit_client = function(event_name, target, ...)
+        assert(target > 0, "Target client ID must be greater than 0, or use emit_all_clients instead.")
+        TriggerClientEvent(event_name, target, ...)
+    end
     event.emit_client_latent = TriggerLatentClientEvent
 
     event.once_client = function(event_name, listener)
