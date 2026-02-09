@@ -195,6 +195,12 @@ function colshape_poly.new(in_points, in_min_z, in_max_z)
     end
     self.origin = origin / #self.points
     self.radius = -math.huge
+
+    local dist = math.abs(self.max_z - self.min_z) / 2.0
+    if (dist > self.radius) then
+        self.radius = dist
+    end
+
     for i = 1, #self.points do
         local dist = #(self.points[i] - self.origin)
         if (dist > self.radius) then
