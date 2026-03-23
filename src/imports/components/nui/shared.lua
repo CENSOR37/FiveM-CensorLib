@@ -37,18 +37,14 @@ function meta_index.on(name, listener)
     local nui_event = "__cfx_nui:" .. name
 
     native.register_nui_callback_type(name)
-
-    local event_data = native.add_event_handler(nui_event, function(data, cb)
+    return native.add_event_handler(nui_event, function(data, cb)
         local results = { listener(table.unpack(data)) }
-        if (#results <= 0) then
-            cb({ ok = true })
+        if (next(results) == nil) then
+            cb({})
             return
         end
-
-        cb({ ok = true, results = results })
+        cb(results)
     end)
-
-    return event_data
 end
 
 function meta_index.on_ready(listener)
