@@ -43,7 +43,7 @@ function meta_index.on(name, listener)
             cb({})
             return
         end
-        cb(results)
+        cb(table.unpack(results))
     end)
 end
 
