@@ -34,13 +34,7 @@ function color.from_rgba(r, g, b, a)
     self.b = clamp_color_value(b)
     self.a = clamp_color_value(a or 255)
 
-    return setmetatable(self, {
-        __index = function(t, k)
-            if (color[k]) then
-                return color[k](self)
-            end
-        end,
-    })
+    return setmetatable(self, color)
 end
 
 function color.from_rgb(r, g, b)
