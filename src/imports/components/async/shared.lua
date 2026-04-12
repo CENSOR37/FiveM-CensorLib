@@ -10,10 +10,9 @@ local alias_fields = {
 }
 
 local function async(fn_handler)
-    local is_used = false
-
     return setmetatable({}, {
         __call = function(_, ...)
+            local is_used = false
             local args = { ... }
             local dispatcher = lib.delegate()
             local return_packed = nil
