@@ -135,6 +135,8 @@ function entity:destroy()
     if (self:is_valid()) then
         native.delete_entity(self.handle)
     end
+
+    entity.__instances[self.handle] = nil
 end
 
 -- @ class object
