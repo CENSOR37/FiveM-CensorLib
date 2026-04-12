@@ -32,7 +32,8 @@ end
 if (is_server) then
     event.on_client = add_net_handler
     event.emit_client = function(event_name, target, ...)
-        assert(target > 0, "Target client ID must be greater than 0, or use emit_all_clients instead.")
+        assert(type(target) == "number" or (type(target) == "string" and tonumber(target) ~= nil), "Target client ID must be a number or a string that can be converted to a number.")
+        assert(tonumber(target) > 0, "Target client ID must be greater than 0, or use emit_all_clients instead.")
         TriggerClientEvent(event_name, target, ...)
     end
     event.emit_client_latent = TriggerLatentClientEvent
