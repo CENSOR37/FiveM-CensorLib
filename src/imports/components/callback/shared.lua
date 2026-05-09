@@ -5,7 +5,9 @@ local is_server = lib.is_server
 local on_remote = is_server and lib.on_client or lib.on_server
 
 local prefix = "cslib.cb"
-local timeout_time = 10 * 1000
+-- 1 min if your resource still needs to wait for a callback after 1 min, you have bigger problems than a timeout
+-- also, i need to find a better way to handle this, so we can know if the callback is succeeds or timeout
+local timeout_time = 60 * 1000
 
 local invoke_event = ("cslib.cb.invoke:%s"):format(lib.resource.name)
 local pending_callbacks = {}
