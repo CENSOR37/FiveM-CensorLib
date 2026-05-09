@@ -47,9 +47,9 @@ local function register_callback(eventname, listener)
         local src = source
 
         if (is_server) then
-            lib.emit_client(invoke_event, src, id, listener(...))
+            lib.emit_client_latent(invoke_event, src, -1, id, listener(...))
         else
-            lib.emit_server(invoke_event, id, listener(...))
+            lib.emit_server_latent(invoke_event, -1, id, listener(...))
         end
     end)
 end
@@ -60,7 +60,7 @@ local function trigger_callback_to_server(eventname, listener, ...)
     local callback_id = create_listener(eventname, listener)
     local cb_eventname = ("%s:%s"):format(prefix, eventname)
 
-    lib.emit_server(cb_eventname, callback_id, ...)
+    lib.emit_server_latent(cb_eventname, -1, callback_id, ...)
 end
 
 local function trigger_callback_to_client(eventname, src, listener, ...)
@@ -70,7 +70,7 @@ local function trigger_callback_to_client(eventname, src, listener, ...)
     local callback_id = create_listener(eventname, listener, src)
     local cb_eventname = ("%s:%s"):format(prefix, eventname)
 
-    lib.emit_client(cb_eventname, src, callback_id, ...)
+    lib.emit_client_latent(cb_eventname, src, -1, callback_id, ...)
 end
 
 local function trigger_callback_await(eventname, src, ...)
