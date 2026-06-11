@@ -4,6 +4,12 @@ local table_unpack = table.unpack
 local is_server = lib.is_server
 local on_remote = is_server and lib.on_client or lib.on_server
 
+local msgpack = msgpack
+local msgpack_pack_args = msgpack.pack_args
+
+local LATENT_THRESHOLD <const> = 65536 -- 64 KB
+local LATENT_BPS <const> = -1          -- use default
+
 local prefix = "cslib.cb"
 -- 1 min if your resource still needs to wait for a callback after 1 min, you have bigger problems than a timeout
 -- also, i need to find a better way to handle this, so we can know if the callback is succeeds or timeout
@@ -47,11 +53,24 @@ local function register_callback(eventname, listener)
 
     return on_remote(cb_eventname, function(id, ...)
         local src = source
+        local payload = msgpack_pack_args(id, listener(...))
+        local payload_len = payload:len()
+        local should_use_latent = payload_len > LATENT_THRESHOLD
 
-        if (is_server) then
-            lib.emit_client_latent(invoke_event, src, -1, id, listener(...))
+        if (should_use_latent) then
+            if (is_server) then
+                assert(src ~= -1 and src ~= "-1", "Cannot broadcast a latent client event, please specify a player ID")
+                TriggerLatentClientEventInternal(invoke_event, src, payload, payload_len, LATENT_BPS)
+            else
+                TriggerLatentServerEventInternal(invoke_event, payload, payload_len, LATENT_BPS)
+            end
         else
-            lib.emit_server_latent(invoke_event, -1, id, listener(...))
+            if (is_server) then
+                assert(src ~= -1 and src ~= "-1", "Cannot broadcast a client event, please specify a player ID")
+                TriggerClientEventInternal(invoke_event, src, payload, payload_len)
+            else
+                TriggerServerEventInternal(invoke_event, payload, payload_len)
+            end
         end
     end)
 end
