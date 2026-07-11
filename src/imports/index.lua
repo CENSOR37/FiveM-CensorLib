@@ -24,6 +24,18 @@ lib.on_next_tick = function(handler)
     return lib.timer.new(handler, 0, false)
 end
 
+lib.clear_interval = function(timer)
+    if (timer ~= nil) then
+        timer:stop()
+    end
+end
+
+lib.clear_timer = function(timer)
+    if (timer ~= nil) then
+        timer:stop()
+    end
+end
+
 for key, value in pairs(lib._event) do
     if (value ~= nil) then
         lib[key] = value
