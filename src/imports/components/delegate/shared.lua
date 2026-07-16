@@ -142,4 +142,4 @@ function delegate:empty()
     self._pending_unbinds = nil
 end
 
-lib_module = setmetatable({ new = delegate.new }, { __call = function(_, unsafe) return delegate.new(unsafe) end })
+lib_module = setmetatable({ new = delegate.new }, { __call = function(_, ...) return delegate.new(...) end })
