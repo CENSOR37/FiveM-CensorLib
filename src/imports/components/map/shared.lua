@@ -4,6 +4,10 @@ local table_wipe = table.wipe
 local map = {}
 map.__index = map
 
+function map:__len()
+    return self.size
+end
+
 function map.new()
     local self = setmetatable({}, map)
     self.data = {}
