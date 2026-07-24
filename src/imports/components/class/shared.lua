@@ -10,14 +10,20 @@ local mixins = {}
 local constructors = setmetatable({}, weakkeys)
 
 local function get_constructor(class)
-    local constructor = constructors[class] or class.constructor
-
-    if (class.constructor) then
-        constructors[class] = class.constructor
-        class.constructor = nil
+    local cached = constructors[class]
+    if (cached ~= nil) then
+        return cached.fn, cached.owner
     end
 
-    return constructor
+    local current = class
+    while (current) do
+        local ctor = rawget(current, "constructor")
+        if (ctor) then
+            constructors[class] = { fn = ctor, owner = current }
+            return ctor, current
+        end
+        current = getmetatable(current)
+    end
 end
 
 local function void() return "" end
@@ -59,20 +65,21 @@ end
 function mixins.new(class, ...)
     lib.validate.type.assert(class, "table")
 
-    local constructor = get_constructor(class)
+    local constructor, owner = get_constructor(class)
     local private = {}
     local obj = setmetatable({ private = private }, class)
 
     -- START OF: super constructor
     -- This is to allow the constructor to call super constructors
     if (constructor) then
-        local parent = class
+        local parent = owner -- start super from the class that actually owns this ctor
 
         rawset(obj, "super", function(self, ...)
             parent = getmetatable(parent)
-            constructor = get_constructor(parent)
-
-            if constructor then return constructor(self, ...) end
+            if (not parent) then return end
+            local parent_ctor
+            parent_ctor, parent = get_constructor(parent)
+            if (parent_ctor) then return parent_ctor(self, ...) end
         end)
 
         constructor(obj, ...)
