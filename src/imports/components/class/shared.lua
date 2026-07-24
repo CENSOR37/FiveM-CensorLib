@@ -2,12 +2,12 @@
 
 local getinfo = debug.getinfo
 
-local weakmt = { __mode = "kv" }
+local weakkeys = { __mode = "k" }
 
-local classes = setmetatable({}, weakmt)
+local classes = setmetatable({}, weakkeys)
 
 local mixins = {}
-local constructors = {}
+local constructors = setmetatable({}, weakkeys)
 
 local function get_constructor(class)
     local constructor = constructors[class] or class.constructor
@@ -108,7 +108,7 @@ local function class(...)
     local class = table.clone(mixins)
     class.__index = class
 
-    classes[class] = setmetatable({}, weakmt)
+    classes[class] = setmetatable({}, weakkeys)
 
     return class
 end
