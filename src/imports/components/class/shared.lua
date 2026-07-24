@@ -2,6 +2,10 @@
 
 local getinfo = debug.getinfo
 
+local weakmt = { __mode = "kv" }
+
+local classes = setmetatable({}, weakmt)
+
 local mixins = {}
 local constructors = {}
 
@@ -17,6 +21,32 @@ local function get_constructor(class)
 end
 
 local function void() return "" end
+
+local function validate_private_access(class)
+    local level = 3
+
+    while true do
+        local di = getinfo(level, "f")
+
+        if (not di or not di.func) then return false end
+
+        local method = classes[class][di.func]
+
+        if (not method) then
+            for k, v in pairs(class) do
+                if (v == di.func) then
+                    method = v
+                    classes[class][method] = k
+                    break
+                end
+            end
+        end
+
+        if (method) then return true end
+
+        level += 1
+    end
+end
 
 
 function mixins.new(class, ...)
@@ -54,16 +84,12 @@ function mixins.new(class, ...)
             __metatable = "private",
             __tostring = void,
             __index = function(self, index)
-                local di = getinfo(2, "n")
-
-                if (di.namewhat ~= "method" and di.namewhat ~= "") then return end
+                if (not validate_private_access(class)) then return end
 
                 return private[index]
             end,
             __newindex = function(self, index, value)
-                local di = getinfo(2, "n")
-
-                if (di.namewhat ~= "method" and di.namewhat ~= "") then
+                if (not validate_private_access(class)) then
                     error(("cannot set value of private field '%s'"):format(index), 2)
                 end
 
@@ -81,6 +107,8 @@ end
 local function class(...)
     local class = table.clone(mixins)
     class.__index = class
+
+    classes[class] = setmetatable({}, weakmt)
 
     return class
 end
