@@ -4,15 +4,7 @@ local table_unpack = table.unpack
 local is_server = lib.is_server
 local on_remote = is_server and lib.on_client or lib.on_server
 
-local msgpack = msgpack
-local msgpack_pack_args = msgpack.pack_args
-
-local LATENT_THRESHOLD <const> = 65536 -- 64 KB
-local LATENT_BPS <const> = -1          -- use default
-
 local prefix = "cslib.cb"
--- 1 min if your resource still needs to wait for a callback after 1 min, you have bigger problems than a timeout
--- also, i need to find a better way to handle this, so we can know if the callback is succeeds or timeout
 local timeout_time = 60 * 1000
 
 local invoke_event = ("cslib.cb.invoke:%s"):format(lib.resource.name)
@@ -53,24 +45,11 @@ local function register_callback(eventname, listener)
 
     return on_remote(cb_eventname, function(id, ...)
         local src = source
-        local payload = msgpack_pack_args(id, listener(...))
-        local payload_len = payload:len()
-        local should_use_latent = payload_len > LATENT_THRESHOLD
 
-        if (should_use_latent) then
-            if (is_server) then
-                assert(src ~= -1 and src ~= "-1", "Cannot broadcast a latent client event, please specify a player ID")
-                TriggerLatentClientEventInternal(invoke_event, src, payload, payload_len, LATENT_BPS)
-            else
-                TriggerLatentServerEventInternal(invoke_event, payload, payload_len, LATENT_BPS)
-            end
+        if (is_server) then
+            lib.emit_client_adaptive(invoke_event, src, id, listener(...))
         else
-            if (is_server) then
-                assert(src ~= -1 and src ~= "-1", "Cannot broadcast a client event, please specify a player ID")
-                TriggerClientEventInternal(invoke_event, src, payload, payload_len)
-            else
-                TriggerServerEventInternal(invoke_event, payload, payload_len)
-            end
+            lib.emit_server_adaptive(invoke_event, id, listener(...))
         end
     end)
 end
@@ -81,7 +60,7 @@ local function trigger_callback_to_server(eventname, listener, ...)
     local callback_id = create_listener(eventname, listener)
     local cb_eventname = ("%s:%s"):format(prefix, eventname)
 
-    lib.emit_server_latent(cb_eventname, -1, callback_id, ...)
+    lib.emit_server_adaptive(cb_eventname, callback_id, ...)
 end
 
 local function trigger_callback_to_client(eventname, src, listener, ...)
@@ -91,7 +70,7 @@ local function trigger_callback_to_client(eventname, src, listener, ...)
     local callback_id = create_listener(eventname, listener, src)
     local cb_eventname = ("%s:%s"):format(prefix, eventname)
 
-    lib.emit_client_latent(cb_eventname, src, -1, callback_id, ...)
+    lib.emit_client_adaptive(cb_eventname, src, callback_id, ...)
 end
 
 local function trigger_callback_await(eventname, src, ...)
