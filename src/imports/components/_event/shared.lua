@@ -3,7 +3,10 @@ local is_server = IsDuplicityVersion()
 
 local function add_event_handler(event_name, listener, is_remote)
     if (is_remote) then
-        RegisterNetEvent(event_name)
+        return RegisterNetEvent(event_name, function(...)
+            if (source ~= 65535) then return end
+            listener(...)
+        end)
     end
     return AddEventHandler(event_name, listener)
 end
