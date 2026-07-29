@@ -21,21 +21,21 @@ end
 local function add_event_handler(event_name, listener, is_remote)
     if (is_remote) then
         return RegisterNetEvent(event_name, function(...)
-            local src = source
-            local is_from_remote = false
-
-            if (is_server) then
-                is_from_remote = (src ~= "")
-            else
-                is_from_remote = (src == 65535)
-            end
+            local is_from_remote = source ~= ""
 
             if (is_from_remote) then
                 listener(...)
             end
         end)
     end
-    return AddEventHandler(event_name, listener)
+
+    return AddEventHandler(event_name, function(...)
+        local is_from_local = source == ""
+
+        if (is_from_local) then
+            listener(...)
+        end
+    end)
 end
 
 local function add_net_handler(event_name, listener)
