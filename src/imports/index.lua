@@ -46,3 +46,8 @@ lib.uuid = lib.random.uuid
 
 -- common functions
 lib.coalesce = lib.common.coalesce
+lib.require = lib._loader.require
+lib.load = lib._loader.load
+lib.load_json = lib._loader.load_json
+
+require = lib._loader.require
