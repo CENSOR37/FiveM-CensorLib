@@ -1,7 +1,7 @@
 local _require = require
 local noop = function() end
 
-local lib = {}
+local loader = {}
 local loaded = {}
 local resource_name = GetCurrentResourceName()
 
@@ -116,7 +116,7 @@ package.searchers = {
 ---@param env? table
 ---@return unknown
 ---Loads and runs a Lua file at the given path. Unlike require, the chunk is not cached for future use.
-function lib.load(file_path, env)
+function loader.load(file_path, env)
     if (type(file_path) ~= "string") then
         error(("file path must be a string (received '%s')"):format(file_path), 2)
     end
@@ -131,7 +131,7 @@ end
 ---@param file_path string
 ---@return table
 ---Loads and decodes a json file at the given path.
-function lib.load_json(file_path)
+function loader.load_json(file_path)
     if (type(file_path) ~= "string") then
         error(("file path must be a string (received '%s')"):format(file_path), 2)
     end
@@ -150,7 +150,7 @@ end
 ---Passing `@resource_name.mod_name` loads a module from a remote resource.
 ---@param mod_name string
 ---@return unknown
-function lib.require(mod_name)
+function loader.require(mod_name)
     if (type(mod_name) ~= "string") then
         error(("module name must be a string (received '%s')"):format(mod_name), 3)
     end
@@ -182,3 +182,5 @@ function lib.require(mod_name)
 
     error(("%s"):format(table.concat(err, "\n\t")))
 end
+
+lib_module = loader
