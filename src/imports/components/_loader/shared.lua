@@ -15,6 +15,8 @@ local package = {
     }),
 }
 
+local this_source = debug.getinfo(1, "S").source
+
 ---@param mod_name string
 ---@return string
 ---@return string
@@ -25,7 +27,9 @@ local function get_module_info(mod_name)
         return resource, mod_name:sub(#resource + 3)
     end
 
-    local idx = 4 -- call stack depth (kept slightly lower than expected depth "just in case")
+    -- walk up from our own frame; frames belonging to this file are skipped so the
+    -- first match is always the calling resource, regardless of call depth
+    local idx = 2
 
     while true do
         local src = debug.getinfo(idx, "S")?.source
@@ -34,10 +38,12 @@ local function get_module_info(mod_name)
             return resource_name, mod_name
         end
 
-        resource = src:match("^@@([^/]+)/.+")
+        if (src ~= this_source) then
+            resource = src:match("^@@([^/]+)/.+")
 
-        if (resource) then
-            return resource, mod_name
+            if (resource) then
+                return resource, mod_name
+            end
         end
 
         idx += 1
@@ -152,7 +158,7 @@ end
 ---@return unknown
 function loader.require(mod_name)
     if (type(mod_name) ~= "string") then
-        error(("module name must be a string (received '%s')"):format(mod_name), 3)
+        error(("module name must be a string (received '%s')"):format(mod_name), 2)
     end
 
     local module = loaded[mod_name]
@@ -171,7 +177,17 @@ function loader.require(mod_name)
         local result, error_msg = package.searchers[i](mod_name)
 
         if (result) then
-            if (type(result) == "function") then result = result() end
+            if (type(result) == "function") then
+                local ok, value = pcall(result)
+
+                if not (ok) then
+                    loaded[mod_name] = nil
+                    error(value, 0)
+                end
+
+                result = value
+            end
+
             loaded[mod_name] = result or result == nil
 
             return loaded[mod_name]
@@ -180,7 +196,8 @@ function loader.require(mod_name)
         err[#err + 1] = error_msg
     end
 
-    error(("%s"):format(table.concat(err, "\n\t")))
+    loaded[mod_name] = nil
+    error(("module '%s' not found\n\t%s"):format(mod_name, table.concat(err, "\n\t")), 2)
 end
 
 lib_module = loader
