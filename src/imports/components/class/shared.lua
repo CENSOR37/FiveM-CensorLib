@@ -28,6 +28,40 @@ end
 
 local function void() return "" end
 
+local function find_owner(class, fn)
+    local current = class
+
+    while (current) do
+        local methods = classes[current]
+
+        if (methods) then
+            if (not methods[fn]) then
+                for name, value in pairs(current) do
+                    if (value == fn) then
+                        methods[fn] = name
+                        break
+                    end
+                end
+            end
+
+            if (methods[fn]) then return current end
+        end
+
+        current = getmetatable(current)
+    end
+end
+
+local function find_inherited(class, fn, key)
+    local current = getmetatable(find_owner(class, fn) or class)
+
+    while (current) do
+        local value = rawget(current, key)
+        if (value ~= nil) then return value end
+
+        current = getmetatable(current)
+    end
+end
+
 local function validate_private_access(class)
     local level = 3
 
@@ -35,58 +69,43 @@ local function validate_private_access(class)
         local di = getinfo(level, "f")
 
         if (not di or not di.func) then return false end
-
-        local current_class = class
-
-        while (current_class) do
-            local class_methods = classes[current_class]
-            local method = class_methods and class_methods[di.func]
-
-            if (class_methods and not method) then
-                for k, v in pairs(current_class) do
-                    if (v == di.func) then
-                        method = v
-                        class_methods[method] = k
-                        break
-                    end
-                end
-            end
-
-            if (method) then return true end
-
-            current_class = getmetatable(current_class)
-        end
+        if (find_owner(class, di.func)) then return true end
 
         level += 1
     end
 end
 
+local function get_super(obj, class)
+    return setmetatable({}, {
+        __metatable = "super",
+        __tostring = void,
+
+        __index = function(_, key)
+            local value = find_inherited(class, getinfo(2, "f").func, key)
+
+            if (type(value) ~= "function") then return value end
+
+            return function(_, ...) return value(obj, ...) end
+        end,
+
+        __call = function(_, _, ...)
+            local owner = find_owner(class, getinfo(2, "f").func) or class
+            local parent = getmetatable(owner)
+            local constructor = parent and get_constructor(parent)
+
+            if (constructor) then return constructor(obj, ...) end
+        end,
+    })
+end
 
 function mixins.new(class, ...)
     lib.validate.type.assert(class, "table")
 
-    local constructor, owner = get_constructor(class)
+    local constructor = get_constructor(class)
     local private = {}
     local obj = setmetatable({ private = private }, class)
 
-    -- START OF: super constructor
-    -- This is to allow the constructor to call super constructors
-    if (constructor) then
-        local parent = owner -- start super from the class that actually owns this ctor
-
-        rawset(obj, "super", function(self, ...)
-            parent = getmetatable(parent)
-            if (not parent) then return end
-            local parent_ctor
-            parent_ctor, parent = get_constructor(parent)
-            if (parent_ctor) then return parent_ctor(self, ...) end
-        end)
-
-        constructor(obj, ...)
-    end
-
-    rawset(obj, "super", nil)
-    -- END OF: super constructor
+    if (constructor) then constructor(obj, ...) end
 
     -- START OF: private fields
     if (private ~= obj.private or next(obj.private)) then
@@ -120,9 +139,21 @@ end
 
 local function class(...)
     local class = table.clone(mixins)
-    class.__index = class
 
     classes[class] = setmetatable({}, weakkeys)
+
+    class.__index = function(obj, key)
+        if (key == "super") then return get_super(obj, class) end
+
+        local current = class
+
+        while (current) do
+            local value = rawget(current, key)
+            if (value ~= nil) then return value end
+
+            current = getmetatable(current)
+        end
+    end
 
     return class
 end
