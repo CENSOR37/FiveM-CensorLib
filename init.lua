@@ -1,0 +1,104 @@
+assert(_VERSION:find("5.4"), "^1[ Please enable Lua 5.4 ]^0")
+
+local lib_resource = "censorlib"
+local context = IsDuplicityVersion() and "server" or "client"
+
+local loading = {}
+
+local function load_module(lib, name)
+    assert(type(name) == "string", "^1[ Module name must be a string ]^0")
+    assert(not loading[name], ("^1[ Circular dependency detected while loading module (%s) ]^0"):format(name))
+
+    local path = ("src/imports/%s/%s.lua"):format(name, context)
+    local src = LoadResourceFile(lib_resource, path)
+
+    if (not src) then
+        path = ("src/imports/%s/shared.lua"):format(name)
+        src = LoadResourceFile(lib_resource, path)
+    end
+
+    if (not src) then
+        loading[name] = nil
+        error(("^1[ Module not found (%s) ]^0"):format(path), 3)
+    end
+
+    src = ("local lib = ...;%s"):format(src)
+
+    if (src) then
+        local chunk, err = load(src, ("@@%s/src/imports/%s/%s.lua"):format(lib_resource, name, context))
+        assert(chunk and not err, ("\n^1Error importing module (%s): %s^0"):format(path, err))
+
+        local ok, result = pcall(chunk, lib)
+        loading[name] = nil
+        if not ok then error(result, 3) end
+        return result
+    end
+end
+
+local function __index(tbl, key)
+    local module = load_module(tbl, key)
+    rawset(tbl, key, module)
+    return module
+end
+
+local lib = setmetatable({}, { __index = __index, __call = __index })
+
+rawset(_ENV, "cslib", lib)
+
+-- API: Loader functions, if it still "C" require is the default require function, we override it to use our own loader
+if (debug.getinfo(require).what == "C") then
+    require = lib._loader.require
+end
+
+-----------------------------------------------------------------------------------------------
+-- API: Common functions
+-----------------------------------------------------------------------------------------------
+
+local is_server = IsDuplicityVersion()
+
+lib.is_server = is_server
+lib.is_client = not is_server
+lib.service = is_server and "server" or "client"
+lib.service_inversed = is_server and "client" or "server"
+
+lib.set_interval = function(handler, delay)
+    return lib.timer.new(handler, delay, true)
+end
+
+lib.set_timeout = function(handler, delay)
+    return lib.timer.new(handler, delay, false)
+end
+
+lib.on_tick = function(handler)
+    return lib.timer.new(handler, 0, true)
+end
+
+lib.on_next_tick = function(handler)
+    return lib.timer.new(handler, 0, false)
+end
+
+lib.clear_interval = function(timer)
+    if (timer ~= nil) then
+        timer:stop()
+    end
+end
+
+lib.clear_timer = function(timer)
+    if (timer ~= nil) then
+        timer:stop()
+    end
+end
+
+for key, value in pairs(lib._event) do
+    if (value ~= nil) then
+        lib[key] = value
+    end
+end
+
+lib.uuid = lib.random.uuid
+
+-- common functions
+lib.coalesce = lib.common.coalesce
+lib.require = lib._loader.require
+lib.load = lib._loader.load
+lib.load_json = lib._loader.load_json

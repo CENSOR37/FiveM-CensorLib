@@ -1,7 +1,0 @@
-{
-    "Lua.diagnostics.globals": [
-        "lib",
-        "cslib_component",
-        "lib_module"
-    ]
-}

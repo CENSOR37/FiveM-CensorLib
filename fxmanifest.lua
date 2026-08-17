@@ -1,6 +1,13 @@
--- [[ Informations ]]
 fx_version "cerulean"
-game "gta5"
+use_experimental_fxv2_oal "yes"
+lua54 "yes"
+games { "gta5" }
 
--- [[ Files ]]
-files { "imports.lua", "nui.js" }
+files {
+    "init.lua",
+    "imports.lua",
+    "src/imports/**/client.lua",
+    "src/imports/**/shared.lua",
+    "src/modules/**/shared.lua",
+    "src/modules/**/client.lua",
+}
