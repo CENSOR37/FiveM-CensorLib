@@ -147,7 +147,7 @@ function loader.load_json(file_path)
 end
 
 ---Loads the given module, returns any value returned by the seacher (`true` when `nil`).\
----Passing `@resourceName.modName` loads a module from a remote resource.
+---Passing `@resource_name.mod_name` loads a module from a remote resource.
 ---@param mod_name string
 ---@return unknown
 function loader.require(mod_name)
