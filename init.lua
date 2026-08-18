@@ -18,23 +18,22 @@ local function preload_loader()
 end
 
 local loader = preload_loader()
+local lib = loader.require(("src.imports._lib.shared"):format(lib_resource))
+lib._loader = loader
 
-local function load_module(name)
-    local ok, module = pcall(loader.require, ("@%s.src.imports.%s.%s"):format(lib_resource, name, context))
+local function load_module(tbl, name)
+    local ok, module = pcall(lib._loader.require, ("@%s.src.imports.%s.%s"):format(lib_resource, name, context))
     if (not ok) then
-        ok, module = pcall(loader.require, ("@%s.src.imports.%s.shared"):format(lib_resource, name))
+        ok, module = pcall(lib._loader.require, ("@%s.src.imports.%s.shared"):format(lib_resource, name))
     end
+
+    assert(ok and module, ("\n^1Error importing module (%s): %s^0"):format(name, module))
+    rawset(tbl, name, module)
+
     return module
 end
 
-local function __index(tbl, key)
-    local module = load_module(key)
-    rawset(tbl, key, module)
-    return module
-end
-
-local lib = setmetatable({}, { __index = __index, __call = __index })
-rawset(lib, "_loader", loader)
+setmetatable(lib, { __index = load_module, __call = load_module })
 
 rawset(_ENV, "cslib", lib)
 

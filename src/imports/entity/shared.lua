@@ -1,3 +1,5 @@
+local lib = require "src.imports._lib.shared"
+
 local native = {
     create_thread_now = Citizen.CreateThreadNow,
     citizen_await = Citizen.Await,

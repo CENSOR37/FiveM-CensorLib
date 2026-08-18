@@ -1,3 +1,5 @@
+local lib = require "src.imports._lib.shared"
+
 local table_unpack = table.unpack
 local table_pack = table.pack
 local create_thread_now = Citizen.CreateThreadNow

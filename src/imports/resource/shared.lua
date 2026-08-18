@@ -1,3 +1,5 @@
+local lib = require "src.imports._lib.shared"
+
 local native = {
     get_current_resource_name = GetCurrentResourceName,
     get_resource_state = GetResourceState,
