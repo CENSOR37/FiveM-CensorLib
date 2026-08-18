@@ -1,3 +1,5 @@
+local lib = require "src.imports._lib.shared"
+
 local native = {
     citizen_wait = Citizen.Wait,
     -- anim_dict

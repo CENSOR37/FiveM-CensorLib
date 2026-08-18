@@ -1,3 +1,5 @@
+local lib = require "src.imports._lib.shared"
+
 local promise = promise
 local citizen_await = Citizen.Await
 local table_unpack = table.unpack

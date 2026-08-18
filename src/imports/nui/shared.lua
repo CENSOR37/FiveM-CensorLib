@@ -1,3 +1,5 @@
+local lib = require "src.imports._lib.shared"
+
 local native = {
     send_nui_message = SendNuiMessage,
     set_nui_focus = SetNuiFocus,

@@ -1,3 +1,5 @@
+local lib = require "src.imports._lib.shared"
+
 local default_lang = "en"
 local dictionary = {}
 

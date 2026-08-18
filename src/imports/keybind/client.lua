@@ -1,3 +1,5 @@
+local lib = require "src.imports._lib.shared"
+
 local keybind = {}
 keybind.__index = keybind
 keybind.__delegate_ids = {} -- temp
