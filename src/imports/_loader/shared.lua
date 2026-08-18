@@ -1,3 +1,12 @@
+-- this is to prevent breaking compatibility with other loader like ox_lib or other
+if (lib and type(lib) == "table" and lib.load and lib.loadJson and lib.require) then
+    return {
+        load = lib.load,
+        load_json = lib.loadJson,
+        require = lib.require,
+    }
+end
+
 local _require = require
 local noop = function() end
 

@@ -37,10 +37,8 @@ setmetatable(lib, { __index = load_module, __call = load_module })
 
 rawset(_ENV, "cslib", lib)
 
--- API: Loader functions, if it still "C" require is the default require function, we override it to use our own loader
-if (debug.getinfo(require).what == "C") then
-    require = lib._loader.require
-end
+-- Note: this working fine even with other loader, go read "src/imports/_loader/shared.lua" for more details
+require = lib._loader.require
 
 -----------------------------------------------------------------------------------------------
 -- API: Common functions
