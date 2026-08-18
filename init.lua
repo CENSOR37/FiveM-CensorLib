@@ -3,45 +3,38 @@ assert(_VERSION:find("5.4"), "^1[ Please enable Lua 5.4 ]^0")
 local lib_resource = "censorlib"
 local context = IsDuplicityVersion() and "server" or "client"
 
-local loading = {}
-
-local function load_module(lib, name)
-    assert(type(name) == "string", "^1[ Module name must be a string ]^0")
-    assert(not loading[name], ("^1[ Circular dependency detected while loading module (%s) ]^0"):format(name))
-
-    local path = ("src/imports/%s/%s.lua"):format(name, context)
+local function preload_loader()
+    local name = "_loader"
+    local path = ("src/imports/%s/%s.lua"):format(name, "shared")
     local src = LoadResourceFile(lib_resource, path)
 
-    if (not src) then
-        path = ("src/imports/%s/shared.lua"):format(name)
-        src = LoadResourceFile(lib_resource, path)
+    local chunk, err = load(src, ("@@%s/src/imports/%s/%s.lua"):format(lib_resource, name, context))
+    assert(chunk and not err, ("\n^1Error importing module (%s): %s^0"):format(path, err))
+
+    local ok, result = pcall(chunk, lib_resource)
+    assert(ok and result, ("\n^1Error importing module (%s): %s^0"):format(path, result))
+
+    return result
+end
+
+local loader = preload_loader()
+
+local function load_module(name)
+    local ok, module = pcall(loader.require, ("@%s.src.imports.%s.%s"):format(lib_resource, name, context))
+    if (not ok) then
+        ok, module = pcall(loader.require, ("@%s.src.imports.%s.shared"):format(lib_resource, name))
     end
-
-    if (not src) then
-        loading[name] = nil
-        error(("^1[ Module not found (%s) ]^0"):format(path), 3)
-    end
-
-    src = ("local lib = ...;%s"):format(src)
-
-    if (src) then
-        local chunk, err = load(src, ("@@%s/src/imports/%s/%s.lua"):format(lib_resource, name, context))
-        assert(chunk and not err, ("\n^1Error importing module (%s): %s^0"):format(path, err))
-
-        local ok, result = pcall(chunk, lib)
-        loading[name] = nil
-        if not ok then error(result, 3) end
-        return result
-    end
+    return module
 end
 
 local function __index(tbl, key)
-    local module = load_module(tbl, key)
+    local module = load_module(key)
     rawset(tbl, key, module)
     return module
 end
 
 local lib = setmetatable({}, { __index = __index, __call = __index })
+rawset(lib, "_loader", loader)
 
 rawset(_ENV, "cslib", lib)
 
