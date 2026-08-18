@@ -1,6 +1,6 @@
-local lib = require "src.imports._lib.shared"
+--- Credits: Adapted from ox_lib (https://github.com/overextended/ox_lib/blob/main/imports/print/shared.lua) - See original file for license details.
 
--- a huge courtesy to overextended team.
+local lib = require "src.imports._lib.shared"
 
 local prefix_levels = {
     error = 1,

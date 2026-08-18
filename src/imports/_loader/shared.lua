@@ -1,3 +1,5 @@
+--- Credits: Adapted from ox_lib (https://github.com/overextended/ox_lib/blob/main/imports/require/shared.lua) - See original file for license details.
+
 -- this is to prevent breaking compatibility with other loader like ox_lib or other
 if (lib and type(lib) == "table" and lib.load and lib.loadJson and lib.require) then
     return {

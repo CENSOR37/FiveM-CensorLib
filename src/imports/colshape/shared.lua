@@ -1,6 +1,6 @@
-local lib = require "src.imports._lib.shared"
+--- Credits: Adapted from ox_lib (https://github.com/overextended/ox_lib/blob/main/imports/zones/shared.lua) - See original file for license details.
 
--- a huge courtesy to overextended team for usage of glm library
+local lib = require "src.imports._lib.shared"
 
 local glm = require "glm"
 local glm_polygon_contains = glm.polygon.contains
