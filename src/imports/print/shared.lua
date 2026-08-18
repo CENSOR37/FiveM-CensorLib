@@ -1,4 +1,6 @@
---- Credits: Adapted from ox_lib (https://github.com/overextended/ox_lib/blob/main/imports/print/shared.lua) - See original file for license details.
+--- Copyright (c) 2024-2026 CENSOR37. Licensed under the MIT License.
+--- Adaptations from ox_lib are subject to its original license.
+--- https://github.com/overextended/ox_lib/blob/main/imports/print/shared.lua - See original file for license details.
 
 local lib = require "src.imports._lib.shared"
 
