@@ -13,9 +13,13 @@ local ENUM_SYNC_MAP_ACTION <const> = {
 }
 
 local ENUM_SYNC_MAP_EVENT <const> = {
-    PRE_REPLICATED_CHANGE = "pre_replicated_change",   -- only being invoke only on the client.
-    POST_REPLICATED_CHANGE = "post_replicated_change", -- only being invoke only on the client, after the change has been applied to the local map.
+    PRE_REPLICATED_CHANGE = "pre_replicated_change",   -- client only, before the change is applied to the local map.
+    POST_REPLICATED_CHANGE = "post_replicated_change", -- client only, after the change has been applied to the local map.
 }
+
+-- Minimum interval (ms) between full-sync requests from a client. A burst of skipped
+-- packets while a full sync is already in flight must not become a burst of requests.
+local FULL_SYNC_REQUEST_COOLDOWN_MS <const> = 1000
 
 function syncmap:__len()
     return #self.map
@@ -27,22 +31,31 @@ function syncmap:new(in_id, in_opts)
     self.opts = {}
     self.opts.only_relevant = in_opts.only_relevant == true
     self.id = in_id
-    self.deltas = {}
-    self.full_deltas = {}
-    self.full_deltas_version = -1
-    self.relevant_sources = {}
-    self.event_handlers = {}
     self.map = lib.map()
     self.version = 0
+    self.event_handlers = {}
 
     self.listeners = {}
-    for key, value in pairs(ENUM_SYNC_MAP_EVENT) do
+    for _, value in pairs(ENUM_SYNC_MAP_EVENT) do
         self.listeners[value] = {}
     end
 
     if (is_server) then
+        -- Random per-instance token. Lets clients distinguish "the server instance was
+        -- recreated and its version counter reset" (must resync) from "stale packet" (must drop).
+        self.epoch = math.random(1, 0x7FFFFFFF)
+        -- Dirty tracking (Fast Array Serializer style): we remember WHICH keys changed,
+        -- and snapshot their latest state at flush time. N writes to one key => 1 delta.
+        self.dirty_keys = {}
+        self.pending_clear = false
+        self.relevant_sources = {}
+        self.full_deltas = nil
+        self.full_deltas_version = -1
         self:_init_server()
     else
+        self.epoch = nil
+        self.awaiting_full_sync = false
+        self.full_sync_requested_at = nil
         self:_init_client()
     end
 
@@ -52,6 +65,10 @@ end
 function syncmap:destroy()
     for i = 1, #self.event_handlers do
         lib.off(self.event_handlers[i])
+    end
+    table_wipe(self.event_handlers)
+    for _, callbacks in pairs(self.listeners) do
+        table_wipe(callbacks)
     end
 end
 
@@ -83,87 +100,174 @@ function syncmap:_event(event)
     return event
 end
 
-function syncmap:_append_delta(action, key, value)
-    self.deltas[#self.deltas + 1] = { action, key, value }
-end
+-- BEGIN OF: SERVER
 
 function syncmap:_build_full_deltas()
-    table_wipe(self.full_deltas)
+    -- Fresh table each rebuild: never mutate a table that may still be referenced by an in-flight send.
+    local full_deltas, n = {}, 0
 
     self.map:for_each(function(key, value)
-        self.full_deltas[#self.full_deltas + 1] = { ENUM_SYNC_MAP_ACTION.SET, key, value }
+        n = n + 1
+        full_deltas[n] = { ENUM_SYNC_MAP_ACTION.SET, key, value }
     end)
 
+    self.full_deltas = full_deltas
     self.full_deltas_version = self.version
 end
 
+--- Sends every pending change as ONE delta packet and bumps the version.
+--- Returns true if something was sent.
+function syncmap:_flush()
+    local pending_clear = self.pending_clear
+    if (not pending_clear and next(self.dirty_keys) == nil) then
+        return false
+    end
+
+    local deltas, n = {}, 0
+
+    if (pending_clear) then
+        n = 1
+        deltas[1] = { ENUM_SYNC_MAP_ACTION.CLEAR }
+    end
+
+    for key in pairs(self.dirty_keys) do
+        local value = self.map:get(key)
+        if (value ~= nil) then
+            n = n + 1
+            deltas[n] = { ENUM_SYNC_MAP_ACTION.SET, key, value }
+        elseif (not pending_clear) then
+            -- After a CLEAR the client has nothing to delete; only emit DELETE otherwise.
+            n = n + 1
+            deltas[n] = { ENUM_SYNC_MAP_ACTION.DELETE, key }
+        end
+    end
+
+    table_wipe(self.dirty_keys)
+    self.pending_clear = false
+    self.version += 1
+
+    local event_name = self:_eventname("incoming_deltas")
+    if (self.opts.only_relevant) then
+        for src in pairs(self.relevant_sources) do
+            lib.resource.emit_client_adaptive(event_name, src, self.epoch, self.version, deltas)
+        end
+    else
+        lib.resource.emit_all_clients_adaptive(event_name, self.epoch, self.version, deltas)
+    end
+
+    return true
+end
+
 function syncmap:_send_full_sync(src)
+    -- Flush first so the snapshot is version-consistent: the map content and the version
+    -- number sent together describe the same state, and the cache below is never stale.
+    self:_flush()
+
     if (self.full_deltas_version ~= self.version) then
         self:_build_full_deltas()
     end
 
-    lib.resource.emit_client_adaptive(self:_eventname("incoming_full_sync"), src, self.version, self.full_deltas)
+    lib.resource.emit_client_adaptive(self:_eventname("incoming_full_sync"), src, self.epoch, self.version, self.full_deltas)
 end
 
-function syncmap:_send_deltas(deltas, src)
-    lib.resource.emit_client_adaptive(self:_eventname("incoming_deltas"), src, self.version, deltas)
+function syncmap:_init_server()
+    self:_event(lib.resource.on_client(self:_eventname("request_full_sync"), function()
+        local src = tonumber(source)
+        if (not src) then return end
+
+        if (self.opts.only_relevant and not self.relevant_sources[src]) then
+            return
+        end
+
+        self:_send_full_sync(src)
+    end))
+
+    self:_event(lib.on("playerDropped", function()
+        local src = tonumber(source)
+        if (src) then
+            self.relevant_sources[src] = nil
+        end
+    end))
 end
 
-function syncmap:_send_deltas_all(deltas)
-    lib.resource.emit_all_clients_adaptive(self:_eventname("incoming_deltas"), self.version, deltas)
+-- END OF: SERVER
+
+-- BEGIN OF: CLIENT
+
+function syncmap:_request_full_sync()
+    local now = GetGameTimer()
+    if (self.full_sync_requested_at and (now - self.full_sync_requested_at) < FULL_SYNC_REQUEST_COOLDOWN_MS) then
+        return
+    end
+
+    self.full_sync_requested_at = now
+    self.awaiting_full_sync = true
+    lib.resource.emit_server(self:_eventname("request_full_sync"))
+end
+
+function syncmap:_apply_clear()
+    local entries, n = {}, 0
+    self.map:for_each(function(k, v)
+        n = n + 1
+        entries[n] = { k, v }
+        self:_emit(ENUM_SYNC_MAP_EVENT.PRE_REPLICATED_CHANGE, k, nil, v)
+    end)
+
+    self.map:clear()
+
+    for i = 1, n do
+        self:_emit(ENUM_SYNC_MAP_EVENT.POST_REPLICATED_CHANGE, entries[i][1], nil, entries[i][2])
+    end
+end
+
+function syncmap:_apply_deltas(deltas)
+    for i = 1, #deltas do
+        local delta = deltas[i]
+        local action, key, value = delta[1], delta[2], delta[3]
+
+        if (action == ENUM_SYNC_MAP_ACTION.SET) then
+            local prev_value = self.map:get(key)
+            self:_emit(ENUM_SYNC_MAP_EVENT.PRE_REPLICATED_CHANGE, key, value, prev_value)
+            self.map:set(key, value)
+            self:_emit(ENUM_SYNC_MAP_EVENT.POST_REPLICATED_CHANGE, key, value, prev_value)
+        elseif (action == ENUM_SYNC_MAP_ACTION.DELETE) then
+            local prev_value = self.map:get(key)
+            self:_emit(ENUM_SYNC_MAP_EVENT.PRE_REPLICATED_CHANGE, key, nil, prev_value)
+            self.map:delete(key)
+            self:_emit(ENUM_SYNC_MAP_EVENT.POST_REPLICATED_CHANGE, key, nil, prev_value)
+        elseif (action == ENUM_SYNC_MAP_ACTION.CLEAR) then
+            self:_apply_clear()
+        end
+    end
 end
 
 function syncmap:_init_client()
-    self:_event(lib.resource.on_server(self:_eventname("incoming_deltas"), function(version, deltas)
-        local packet_old_or_duplicated = version <= self.version
-        local packet_skipped = version > self.version + 1
-
-        if (packet_old_or_duplicated) then
-            return
-        elseif (packet_skipped) then
-            lib.resource.emit_server(self:_eventname("request_full_sync"))
+    self:_event(lib.resource.on_server(self:_eventname("incoming_deltas"), function(epoch, version, deltas)
+        -- No baseline yet (or the server instance changed): deltas are meaningless, we need a snapshot.
+        if (self.awaiting_full_sync or epoch ~= self.epoch) then
+            self:_request_full_sync()
             return
         end
 
-        for i = 1, #deltas do
-            local delta = deltas[i]
-            local action, key, value = delta[1], delta[2], delta[3]
-            local prev_value = self.map:get(key)
-
-            if (action ~= ENUM_SYNC_MAP_ACTION.CLEAR) then
-                self:_emit(ENUM_SYNC_MAP_EVENT.PRE_REPLICATED_CHANGE, key, value, prev_value)
-            end
-
-            if (action == ENUM_SYNC_MAP_ACTION.SET) then
-                self.map:set(key, value)
-                self:_emit(ENUM_SYNC_MAP_EVENT.POST_REPLICATED_CHANGE, key, value, prev_value)
-            elseif (action == ENUM_SYNC_MAP_ACTION.DELETE) then
-                self.map:delete(key)
-                self:_emit(ENUM_SYNC_MAP_EVENT.POST_REPLICATED_CHANGE, key, nil, prev_value)
-            elseif (action == ENUM_SYNC_MAP_ACTION.CLEAR) then
-                local keys = {}
-                self.map:for_each(function(k, v)
-                    keys[#keys + 1] = { k, v }
-                    self:_emit(ENUM_SYNC_MAP_EVENT.PRE_REPLICATED_CHANGE, k, nil, v)
-                end)
-
-                self.map:clear()
-
-                for j = 1, #keys do
-                    local k, v = keys[j][1], keys[j][2]
-                    self:_emit(ENUM_SYNC_MAP_EVENT.POST_REPLICATED_CHANGE, k, nil, v)
-                end
-            end
+        if (version <= self.version) then
+            return                    -- old or duplicated
+        elseif (version > self.version + 1) then
+            self:_request_full_sync() -- gap detected
+            return
         end
 
+        self:_apply_deltas(deltas)
         self.version = version
     end))
 
-    self:_event(lib.resource.on_server(self:_eventname("incoming_full_sync"), function(version, full_deltas)
-        local packet_old_or_duplicated = version < self.version
-        if (packet_old_or_duplicated) then
+    self:_event(lib.resource.on_server(self:_eventname("incoming_full_sync"), function(epoch, version, full_deltas)
+        local epoch_changed = epoch ~= self.epoch
+        if (not epoch_changed and version < self.version) then
             return
         end
+
+        self.epoch = epoch
+        self.awaiting_full_sync = false
 
         local previous_data = {}
         self.map:for_each(function(key, value)
@@ -195,29 +299,12 @@ function syncmap:_init_client()
         self.version = version
     end))
 
-    lib.resource.emit_server(self:_eventname("request_full_sync"))
+    self:_request_full_sync()
 end
 
-function syncmap:_init_server()
-    self:_event(lib.resource.on_client(self:_eventname("request_full_sync"), function()
-        local src = tonumber(source)
+-- END OF: CLIENT
 
-        if (self.opts.only_relevant) then
-            if (not self.relevant_sources[src]) then
-                return
-            end
-        end
-
-        self:_send_full_sync(src)
-    end))
-
-    self:_event(lib.on("playerDropped", function()
-        local src = tonumber(source)
-        if (src) then
-            self.relevant_sources[src] = nil
-        end
-    end))
-end
+-- BEGIN OF: PUBLIC API
 
 function syncmap:for_each(callback)
     self.map:for_each(callback)
@@ -233,18 +320,24 @@ end
 
 function syncmap:set(key, value)
     assert(is_server, "syncmap:set can only be called on the server")
+    assert(key ~= nil, "syncmap:set key cannot be nil")
 
-    self.map:set(key, value)
+    if (value == nil) then
+        self.map:delete(key) -- set(key, nil) is a delete, same as a plain Lua table.
+    else
+        self.map:set(key, value)
+    end
 
-    self:_append_delta(ENUM_SYNC_MAP_ACTION.SET, key, value)
+    self.dirty_keys[key] = true
 end
 
 function syncmap:delete(key)
     assert(is_server, "syncmap:delete can only be called on the server")
+    assert(key ~= nil, "syncmap:delete key cannot be nil")
 
     self.map:delete(key)
 
-    self:_append_delta(ENUM_SYNC_MAP_ACTION.DELETE, key)
+    self.dirty_keys[key] = true
 end
 
 function syncmap:clear()
@@ -252,31 +345,19 @@ function syncmap:clear()
 
     self.map:clear()
 
-    self:_append_delta(ENUM_SYNC_MAP_ACTION.CLEAR, nil, nil)
+    -- Everything dirtied before the clear is now irrelevant: one CLEAR supersedes it all.
+    table_wipe(self.dirty_keys)
+    self.pending_clear = true
 end
 
 function syncmap:mark_dirty()
     assert(is_server, "syncmap:mark_dirty can only be called on the server")
-
-    if (#self.deltas == 0) then return end
-
-    self.version += 1
-
-    if (self.opts.only_relevant) then
-        for source, _ in pairs(self.relevant_sources) do
-            self:_send_deltas(self.deltas, source)
-        end
-    else
-        self:_send_deltas_all(self.deltas)
-    end
-
-    table_wipe(self.deltas)
+    self:_flush()
 end
 
 function syncmap:_is_player_relevant(in_src)
     local src = tonumber(in_src)
-    local is_relevant = self.relevant_sources[src]
-    return is_relevant, src
+    return self.relevant_sources[src] == true, src
 end
 
 function syncmap:is_player_relevant(in_src)
@@ -289,8 +370,11 @@ function syncmap:add_relevant_player(in_src)
     if (not self.opts.only_relevant) then return end
 
     local is_relevant, src = self:_is_player_relevant(in_src)
-    if (is_relevant) then return end
+    if (is_relevant or not src) then return end
 
+    -- Flush BEFORE registering the player: pending deltas go to the existing audience only,
+    -- the newcomer gets a clean snapshot (no delta + full sync for the same change).
+    self:_flush()
     self.relevant_sources[src] = true
     self:_send_full_sync(src)
 end
@@ -303,7 +387,10 @@ function syncmap:remove_relevant_player(in_src)
     if (not is_relevant) then return end
 
     self.relevant_sources[src] = nil
-    lib.resource.emit_client_adaptive(self:_eventname("incoming_full_sync"), src, self.version, {})
+    -- An empty snapshot at the current version wipes the client's copy (and fires change events for every key).
+    lib.resource.emit_client_adaptive(self:_eventname("incoming_full_sync"), src, self.epoch, self.version, {})
 end
+
+-- END OF: PUBLIC API
 
 return syncmap
