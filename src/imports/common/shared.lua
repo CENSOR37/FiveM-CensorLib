@@ -1,16 +1,15 @@
-local function coalesce(...)
-    local params = { ... }
-    local return_value = nil
+local select = select
 
-    for i = 1, #params, 1 do
-        local value = params[i]
+local function coalesce(...)
+    for i = 1, select("#", ...), 1 do
+        local value = select(i, ...)
+
         if (value ~= nil) then
-            return_value = value
-            break
+            return value
         end
     end
 
-    return return_value
+    return nil
 end
 
 return { coalesce = coalesce }
