@@ -4,7 +4,7 @@ local table_pack = table.pack
 local table_unpack = table.unpack
 local CreateThreadNow = Citizen.CreateThreadNow
 
-local syncmap = require "src.imports.syncmap.shared"
+local syncmap = require "src.imports.syncer.syncmap.shared"
 local lib = require "src.imports._lib.shared"
 
 local is_server = IsDuplicityVersion()
