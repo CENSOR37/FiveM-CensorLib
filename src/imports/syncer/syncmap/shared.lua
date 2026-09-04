@@ -1,3 +1,5 @@
+--- Copyright (c) 2024-2026 CENSOR37. Licensed under the MIT License.
+
 local lib = require "src.imports._lib.shared"
 local table_wipe = table.wipe
 local is_server = lib.is_server
