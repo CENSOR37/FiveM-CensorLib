@@ -69,13 +69,13 @@ end
 
 lib.clear_interval = function(timer)
     if (timer ~= nil) then
-        timer:stop()
+        timer:destroy()
     end
 end
 
 lib.clear_timer = function(timer)
     if (timer ~= nil) then
-        timer:stop()
+        timer:destroy()
     end
 end
 
