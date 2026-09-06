@@ -85,7 +85,7 @@ for key, value in pairs(lib._event) do
     end
 end
 
-lib.uuid = lib.random.uuid
+lib.uuid = lib._uuid.v7
 
 -- common functions
 lib.coalesce = lib.common.coalesce
