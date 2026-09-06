@@ -3,6 +3,7 @@
 --- https://github.com/overextended/ox_lib/blob/main/imports/zones/shared.lua - See original file for license details.
 
 local lib = require "src.imports._lib.shared"
+local class = require "src.imports.class.shared"
 
 local glm = require "glm"
 local glm_polygon_contains = glm.polygon.contains
@@ -51,27 +52,26 @@ end
 
 local function colshape_classwarp(class, ...)
     return setmetatable({
-        new = class.new,
+        new = function(...)
+            return class:new(...)
+        end,
         is_a = function(obj)
             return getmetatable(obj) == class
         end,
     }, {
-        __call = function(t, ...)
-            return t.new(...)
+        __call = function(_, ...)
+            return class:new(...)
         end,
     })
 end
 
 -- colshape
-local colshape = {}
-colshape.__index = colshape
+local colshape = class()
 
-function colshape.new()
-    local self = {}
-    self.origin = vec(0.0, 0.0, 0.0)
-    self.args = {}
-
-    return setmetatable(self, colshape)
+function colshape:constructor(origin, ...)
+    assert(origin, "origin is required")
+    self.origin = origin
+    self.args = { ... }
 end
 
 function colshape:is_position_inside(position)
@@ -84,20 +84,17 @@ function colshape:draw_debug()
     draw_origin_dbg(self)
 end
 
-local colshape_circle = {}
-colshape_circle.__index = colshape_circle
+local colshape_circle = class.extends(colshape)
 
-function colshape_circle.new(position, radius)
+function colshape_circle:constructor(position, radius)
     lib.validate.type.assert(position, "vector3", "vector4", "table")
     lib.validate.type.assert(radius, "number")
 
-    local self = setmetatable({}, colshape_circle)
-    self.args = { position, radius }
+    local origin = vec(position.x, position.y, 0.0)
+
+    self.super:constructor(origin, position, radius)
     self.radius = numdeci(radius)
     self.position = vec(position.x, position.y)
-    self.origin = vec(position.x, position.y, 0.0)
-
-    return self
 end
 
 function colshape_circle:is_position_inside(position)
@@ -127,21 +124,18 @@ function colshape_circle:draw_debug()
 end
 
 -- colshape_sphere
-local colshape_sphere = {}
-colshape_sphere.__index = colshape_sphere
-setmetatable(colshape_sphere, { __index = colshape })
+local colshape_sphere = class.extends(colshape)
 
-function colshape_sphere.new(position, radius)
+function colshape_sphere:constructor(position, radius)
     lib.validate.type.assert(position, "vector3", "vector4", "table")
     lib.validate.type.assert(radius, "number")
 
-    local self = setmetatable(colshape.new(), colshape_sphere)
-    self.args = { position, radius }
+    local origin = vec(position.x, position.y, position.z)
+
+    self.super:constructor(origin, position, radius)
     self.radius = radius
     self.position = vec(position.x, position.y, position.z)
-    self.origin = vec(position.x, position.y, position.z)
-
-    return self
+    self.origin = origin
 end
 
 function colshape_sphere:is_position_inside(position)
@@ -169,11 +163,9 @@ function colshape_sphere:draw_debug()
 end
 
 -- colshape_poly
-local colshape_poly = {}
-colshape_poly.__index = colshape_poly
-setmetatable(colshape_poly, { __index = colshape })
+local colshape_poly = class.extends(colshape)
 
-function colshape_poly.new(in_points, in_min_z, in_max_z)
+function colshape_poly:constructor(in_points, in_min_z, in_max_z)
     in_min_z = in_min_z or -10000.0
     in_max_z = in_max_z or 10000.0
 
@@ -181,8 +173,6 @@ function colshape_poly.new(in_points, in_min_z, in_max_z)
     lib.validate.type.assert(in_min_z, "number")
     lib.validate.type.assert(in_max_z, "number")
 
-    local self = setmetatable(colshape.new(), colshape_poly)
-    self.args = { in_points, in_min_z, in_max_z }
     self.points = {}
     self.min_z = numdeci(in_min_z)
     self.max_z = numdeci(in_max_z)
@@ -197,7 +187,7 @@ function colshape_poly.new(in_points, in_min_z, in_max_z)
     for i = 1, #self.points do
         origin = origin + self.points[i]
     end
-    self.origin = origin / #self.points
+    self.super:constructor(origin, in_points, in_min_z, in_max_z)
     self.radius = -math.huge
 
     local dist = math.abs(self.max_z - self.min_z) / 2.0
@@ -211,8 +201,6 @@ function colshape_poly.new(in_points, in_min_z, in_max_z)
             self.radius = dist
         end
     end
-
-    return self
 end
 
 function colshape_poly:is_position_inside(position)
