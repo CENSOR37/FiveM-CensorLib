@@ -187,7 +187,7 @@ function colshape_poly:constructor(in_points, in_min_z, in_max_z)
     for i = 1, #self.points do
         origin = origin + self.points[i]
     end
-    self.super:constructor(origin, in_points, in_min_z, in_max_z)
+    self.super:constructor(origin / #self.points, in_points, in_min_z, in_max_z)
     self.radius = -math.huge
 
     local dist = math.abs(self.max_z - self.min_z) / 2.0
