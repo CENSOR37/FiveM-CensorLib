@@ -172,8 +172,27 @@ local function extends(derived)
     return class
 end
 
+local function mixin(base, ...)
+    assert(type(base) == "table" and classes[base], "class.mixin expects a cslib.class base")
+
+    for i = 1, select("#", ...) do
+        local factory = select(i, ...)
+        lib.validate.type.assert(factory, "function")
+        local derived = factory(base)
+        assert(type(derived) == "table" and classes[derived], "mixin must return a cslib.class")
+
+        local ancestor = getmetatable(derived)
+        while (ancestor and ancestor ~= base) do ancestor = getmetatable(ancestor) end
+        assert(derived ~= base and ancestor == base, "mixin must return a subclass of its supplied base")
+        base = derived
+    end
+
+    return base
+end
+
 return setmetatable({
     extends = extends,
+    mixin = mixin,
 }, {
     __call = function(_, ...)
         return class(...)
