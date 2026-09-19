@@ -97,3 +97,5 @@ end
 
 do_poll()
 lib.set_interval(do_poll, 100)
+
+return states
