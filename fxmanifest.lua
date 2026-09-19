@@ -11,6 +11,7 @@ server_script "src/resource/startup-server.lua"
 files {
     "init.lua",
     "imports.lua",
+    "src/resource/startup-shared.lua",
     "src/imports/**/client.lua",
     "src/imports/**/shared.lua",
     "src/modules/**/shared.lua",
@@ -18,5 +19,5 @@ files {
     "src/_lib/**/*shared*.lua",
     "src/_lib/**/*client*.lua",
     "src/resource/**/*shared*.lua",
-    "src/resource/**/*server*.lua",
+    "src/resource/**/*client*.lua",
 }
