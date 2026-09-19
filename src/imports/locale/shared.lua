@@ -10,6 +10,16 @@ local native = {
     load_resource_file = LoadResourceFile,
 }
 
+local function template(str, vars)
+    return string_gsub(str, "%${([%w_]+)}", function(key)
+        local val = vars[key]
+        if (val ~= nil) then
+            return tostring(val)
+        end
+        return "${" .. key .. "}"
+    end)
+end
+
 local function load_dict(lang)
     lib.validate.type.assert(lang, "string")
 
@@ -46,7 +56,7 @@ locale = function(string, vars, lang)
     end
 
     if (vars) then
-        locale_string = string_gsub(locale_string, "%${([%w_]+)}", vars)
+        locale_string = template(locale_string, vars)
     end
 
     return locale_string
