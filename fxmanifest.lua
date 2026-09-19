@@ -4,6 +4,7 @@ lua54 "yes"
 games { "gta5" }
 
 --[[ Scripts. ]]
+shared_script "init.lua"
 client_script "src/resource/startup-client.lua"
 server_script "src/resource/startup-server.lua"
 
