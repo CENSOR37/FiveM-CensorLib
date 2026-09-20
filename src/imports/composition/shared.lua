@@ -40,7 +40,7 @@ end
 local function destroy_entry(entry, owner)
     -- Actual ownership does not depend on the component's public owner field.
     rawset(entry.instance, "owner", owner)
-    local ok, err = xpcall(entry.destroy, traceback, entry.instance)
+    local ok, err = xpcall(entry.instance.destroy, traceback, entry.instance)
     rawset(entry.instance, "owner", nil)
     return ok, err
 end
@@ -57,7 +57,7 @@ function composition.new(owner)
 end
 
 function composition:add(name, component_class, ...)
-    assert(not self._closed, "cannot add components to a destroyed composition")
+    assert(not self._closed and not self._owner_destroyed, "cannot add components to a destroyed composition")
     assert(type(name) == "string" and name ~= "", "component name must be a non-empty string")
     assert(not self._entries[name] and not self._pending[name], ("component name already in use: '%s'"):format(name))
     assert(type(component_class) == "table" and type(component_class.new) == "function", "component must be a class")
@@ -82,7 +82,7 @@ function composition:add(name, component_class, ...)
     partial = nil
     if (not ok) then error(instance, 0) end
 
-    local entry = { name = name, class = component_class, instance = instance, destroy = destroy }
+    local entry = { name = name, class = component_class, instance = instance }
 
     -- A constructor may yield or destroy its owner before returning.
     if (self._closed) then
@@ -155,6 +155,22 @@ local function get_container(owner)
     if (not container) then
         container = composition.new(owner)
         containers[owner] = container
+
+        -- Wrap the instance so class methods, private access, and super stay intact.
+        local destroy = owner.destroy
+        rawset(owner, "destroy", function(self, ...)
+            if (container._owner_destroyed) then return end
+            container._owner_destroyed = true
+
+            local result = table.pack(xpcall(destroy, traceback, self, ...))
+            local success, err = xpcall(container.destroy, traceback, container)
+            if (not result[1]) then
+                if (not success) then result[2] = result[2] .. "\n" .. err end
+                error(result[2], 0)
+            end
+            if (not success) then error(err, 0) end
+            return table.unpack(result, 2, result.n)
+        end)
     end
     return container
 end
@@ -191,6 +207,7 @@ composition_methods.find_components = composition_methods.get_components
 
 local function apply(target)
     lib.validate.type.assert(target, "table")
+    assert(target.destroy == nil or type(target.destroy) == "function", "composition destroy must be a function")
 
     for name, method in pairs(composition_methods) do
         assert(target[name] == nil or target[name] == method, ("composition method conflict: '%s'"):format(name))
@@ -199,6 +216,7 @@ local function apply(target)
     for name, method in pairs(composition_methods) do
         if (target[name] == nil) then target[name] = method end
     end
+    if (target.destroy == nil) then target.destroy = composition_methods.destroy_components end
 
     return target
 end
