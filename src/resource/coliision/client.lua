@@ -1,3 +1,4 @@
+local lib = require "src.imports._lib.shared"
 local states <const> = require "src.resource.cache.client"
 local spatial_grid <const> = require "src.imports._spatial-grid.shared"
 
@@ -17,7 +18,7 @@ local local_ped = function()
     return states.ped.value or PlayerPedId() -- might need to use PlayerPedId directly if cache becomes unreliable
 end
 
-cslib.set_interval(function()
+lib.set_interval(function()
     local ped = local_ped()
     local pos = GetEntityCoords(ped)
 
@@ -35,7 +36,7 @@ cslib.set_interval(function()
 
                 if (not active_zones[handle]) then
                     active_zones[handle] = true
-                    cslib.emit("cslib:collision:enter", ped, data.custom_id)
+                    lib.emit("cslib:collision:enter", ped, data.custom_id)
                 end
             end
         end
@@ -47,20 +48,20 @@ cslib.set_interval(function()
 
             local data = handle_map[handle]
             if (data) then
-                cslib.emit("cslib:collision:exit", ped, data.custom_id)
+                lib.emit("cslib:collision:exit", ped, data.custom_id)
             end
         end
     end
 end, 200)
 
 local function insert_colshape(type, ...)
-    local colshape = cslib.colshape[type](...)
+    local colshape = lib.colshape[type](...)
 
     assert(colshape, "^1Error: Failed to create colshape^0")
     assert(colshape.origin, "Colshape must have an origin property")
     assert(colshape.radius, "Colshape must have a radius (bounding) property")
 
-    local next_id = cslib.uuid()
+    local next_id = lib.uuid()
 
     local handle = grid_system:insert(colshape.origin.xy, vec(colshape.radius * 2, colshape.radius * 2))
     handle_map[handle] = { colshape = colshape, custom_id = next_id }
@@ -77,7 +78,7 @@ local function remove_colshape(custom_id)
 
     if (active_zones[handle]) then
         active_zones[handle] = nil
-        cslib.emit("cslib:collision:exit", local_ped(), custom_id)
+        lib.emit("cslib:collision:exit", local_ped(), custom_id)
     end
 
     handle_map[handle] = nil
@@ -87,7 +88,7 @@ end
 -- HANLDING EXPORT
 local created_exports = {}
 
-cslib.on("onResourceStop", function(resource)
+lib.on("onResourceStop", function(resource)
     local created_by_resource = created_exports[resource]
     if not (created_by_resource) then return end
 

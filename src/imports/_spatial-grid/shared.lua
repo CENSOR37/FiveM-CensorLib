@@ -3,7 +3,9 @@ local table = table
 local table_insert = table.insert
 local table_remove = table.remove
 
-local spatial_grid = cslib.class()
+local lib = require "src.imports._lib.shared"
+
+local spatial_grid = lib.class()
 
 ---@param bound_min vector2|table {x, y}
 ---@param bound_max vector2|table {x, y}
