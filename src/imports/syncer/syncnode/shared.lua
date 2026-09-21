@@ -9,7 +9,6 @@ local lib = require "src.imports._lib.shared"
 
 local is_server = IsDuplicityVersion()
 local is_client = not is_server
-local run_destroy <const> = is_client == true
 
 local syncnode = lib.class()
 
@@ -58,14 +57,6 @@ local function create_syncnode_class(classname, node_opts)
             CreateThreadNow(function()
                 inst:destructor()
             end)
-        end
-
-        if (run_destroy) then
-            if (inst.destroy) then
-                CreateThreadNow(function()
-                    inst:destroy()
-                end)
-            end
         end
     end
 
