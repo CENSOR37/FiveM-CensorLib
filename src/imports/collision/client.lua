@@ -106,4 +106,10 @@ function collision:on_exit(listener)
     self.delegate_exit:bind(listener)
 end
 
-return collision
+local exp = {}
+exp.new = function(_, ...) return _ == exp and collision:new(...) or collision:new(_, ...) end
+exp.circle = function(...) return collision:new(cslib.colshape.circle(...)) end
+exp.sphere = function(...) return collision:new(cslib.colshape.sphere(...)) end
+exp.poly = function(...) return collision:new(cslib.colshape.poly(...)) end
+
+return setmetatable(exp, { __call = function(_, ...) return collision:new(...) end })
