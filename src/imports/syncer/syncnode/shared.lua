@@ -88,15 +88,30 @@ local function create_syncnode_class(classname, node_opts)
         return out_inst
     end
 
-    function out_class:destroy()
-        assert(is_server, "syncnode:destroy can only be called on the server")
+    if (is_server) then
+        function out_class:destroy()
+            assert(is_server, "syncnode:destroy can only be called on the server")
 
-        run_destructor(self)
+            run_destructor(self)
 
-        local node_id = untrack(self)
-        if (node_id) then
-            node_syncmap:delete(node_id)
-            node_syncmap:mark_dirty()
+            local node_id = untrack(self)
+            if (node_id) then
+                node_syncmap:delete(node_id)
+                node_syncmap:mark_dirty()
+            end
+        end
+    end
+
+    local function untrack_run_destructor_destroy(inst)
+        assert(is_client, "untrack_run_destructor_destroy can only be called on the client")
+
+        untrack(inst)
+        run_destructor(inst)
+
+        if (inst.destroy) then
+            CreateThreadNow(function()
+                inst:destroy()
+            end)
         end
     end
 
@@ -107,8 +122,7 @@ local function create_syncnode_class(classname, node_opts)
             local is_creating = (instance == nil and value ~= nil)
 
             if (is_deleting) then
-                untrack(instance)
-                run_destructor(instance)
+                untrack_run_destructor_destroy(instance)
             end
 
             if (is_creating) then
@@ -131,8 +145,7 @@ local function create_syncnode_class(classname, node_opts)
             if (is_server) then
                 instance:destroy()
             else
-                untrack(instance)
-                run_destructor(instance)
+                untrack_run_destructor_destroy(instance)
             end
         end
     end)
