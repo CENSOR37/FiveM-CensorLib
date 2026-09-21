@@ -5,7 +5,7 @@ local current_res_name = GetCurrentResourceName()
 local exp = exports[lib_name]
 local collision = cslib.class()
 
--- TODO: implement reload colshape ? this would allow instant on_enter and on_exit events without waiting for the next streamer update
+-- TODO: implement preload colshape ? this would allow instant on_enter and on_exit events without waiting for the next streamer update
 -- But would we really need it for most use cases?
 
 function collision:constructor(colshape)
