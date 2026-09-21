@@ -9,6 +9,7 @@ client_script "src/resource/startup-client.lua"
 server_script "src/resource/startup-server.lua"
 
 files {
+    "examples/scene_graph/shared.lua",
     "init.lua",
     "imports.lua",
     "src/resource/startup-shared.lua",
