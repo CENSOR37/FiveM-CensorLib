@@ -61,14 +61,16 @@ function collision:init_streamer()
 
     self.collision_id = exp.collision_streamer_insert(nil, self.colshape_type, table.unpack(self.colshape.args))
 
-    self.event_enter = cslib.on(("cslib:streamer:colshape:enter:%s"):format(self.collision_id), function()
+    self.event_enter = cslib.on("cslib:collision:enter", function(in_entity, in_collision_id)
+        if (self.collision_id ~= in_collision_id) then return end
         self.is_inside = true
-        self.delegate_enter:broadcast()
+        self.delegate_enter:broadcast(in_entity, in_collision_id)
     end)
 
-    self.event_exit = cslib.on(("cslib:streamer:colshape:exit:%s"):format(self.collision_id), function()
+    self.event_exit = cslib.on("cslib:collision:exit", function(in_entity, in_collision_id)
+        if (self.collision_id ~= in_collision_id) then return end
         self.is_inside = false
-        self.delegate_exit:broadcast()
+        self.delegate_exit:broadcast(in_entity, in_collision_id)
     end)
 end
 
@@ -91,7 +93,7 @@ function collision:uninit_streamer()
     end
 
     if (self.is_inside) then
-        self.delegate_exit:broadcast()
+        self.delegate_exit:broadcast(nil, self.collision_id)
         self.is_inside = false
     end
 end

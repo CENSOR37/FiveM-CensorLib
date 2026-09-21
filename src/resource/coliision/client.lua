@@ -13,8 +13,12 @@ local id_to_handle = {}
 local active_zones = {}
 local current_frame_inside = {}
 
+local local_ped = function()
+    return states.ped.value or PlayerPedId() -- might need to use PlayerPedId directly if cache becomes unreliable
+end
+
 cslib.set_interval(function()
-    local ped = states.ped.value or PlayerPedId()
+    local ped = local_ped()
     local pos = GetEntityCoords(ped)
 
     local results, count = grid_system:query(pos.xy, PLAYER_QUERY_SIZE)
@@ -31,7 +35,7 @@ cslib.set_interval(function()
 
                 if (not active_zones[handle]) then
                     active_zones[handle] = true
-                    cslib.emit(("cslib:streamer:colshape:enter:%s"):format(data.custom_id))
+                    cslib.emit("cslib:collision:enter", ped, data.custom_id)
                 end
             end
         end
@@ -43,7 +47,7 @@ cslib.set_interval(function()
 
             local data = handle_map[handle]
             if (data) then
-                cslib.emit(("cslib:streamer:colshape:exit:%s"):format(data.custom_id))
+                cslib.emit("cslib:collision:exit", ped, data.custom_id)
             end
         end
     end
@@ -73,7 +77,7 @@ local function remove_colshape(custom_id)
 
     if (active_zones[handle]) then
         active_zones[handle] = nil
-        cslib.emit(("cslib:streamer:colshape:exit:%s"):format(custom_id))
+        cslib.emit("cslib:collision:exit", local_ped(), custom_id)
     end
 
     handle_map[handle] = nil
