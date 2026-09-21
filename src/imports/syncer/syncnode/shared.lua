@@ -89,7 +89,7 @@ local function create_syncnode_class(classname, node_opts)
     end
 
     function out_class:destroy()
-        if (is_server) then return end
+        assert(is_server, "syncnode:destroy can only be called on the server")
 
         run_destructor(self)
 
