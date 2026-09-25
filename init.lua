@@ -40,6 +40,10 @@ rawset(_ENV, "cslib", lib)
 -- Note: this working fine even with other loader, go read "src/imports/_loader/shared.lua" for more details
 require = lib._loader.require
 
+-- Preload
+load_module(lib, "string")
+load_module(lib, "math")
+
 -----------------------------------------------------------------------------------------------
 -- API: Common functions
 -----------------------------------------------------------------------------------------------
