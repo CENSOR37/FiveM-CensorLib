@@ -69,10 +69,25 @@ function keybind:off(data)
     self.delegate[data[1]]:remove(data[2])
 end
 
+function keybind.factory(opts, ...)
+    if (type(opts) == "table") then
+        return keybind.new(
+            opts.name,
+            opts.desc,
+            opts.primary_key,
+            opts.primary_mapper,
+            opts.secondary_key,
+            opts.secondary_mapper
+        )
+    end
+
+    return keybind.new(opts, ...)
+end
+
 return setmetatable({
-    new = keybind.new,
+    new = keybind.factory,
 }, {
     __call = function(_, ...)
-        return keybind.new(...)
+        return keybind.factory(...)
     end,
 })
