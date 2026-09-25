@@ -68,9 +68,17 @@ local function set_language(lang)
     default_lang = lang
 end
 
+local function set_dict(lang, dict)
+    lib.validate.type.assert(lang, "string")
+    lib.validate.type.assert(dict, "table")
+
+    dictionary[lang] = dict
+end
+
 return setmetatable({
     set_language = set_language,
     set_lang = set_language,
+    set_dict = set_dict,
     loc = locale,
 }, {
     __call = function(_, ...)
