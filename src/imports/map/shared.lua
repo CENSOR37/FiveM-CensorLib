@@ -108,6 +108,7 @@ end
 return setmetatable({
     new = factory_warp(map),
     from_array = map.from_array,
+    class = map,
 }, {
     __call = function(_, ...)
         local args = { ... }
