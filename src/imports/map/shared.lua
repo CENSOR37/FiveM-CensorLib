@@ -19,7 +19,7 @@ function map:constructor()
 end
 
 function map.from_array(array)
-    local self = map.new()
+    local self = map:new()
 
     for i = 1, #array do
         local value = array[i]
@@ -105,8 +105,10 @@ function map:set(key, value)
     end
 end
 
+local factory = factory_warp(map)
+
 return setmetatable({
-    new = factory_warp(map),
+    new = factory,
     from_array = map.from_array,
     class = map,
 }, {

@@ -114,11 +114,13 @@ function set:iterator()
     end
 end
 
+local factory = factory_warp(set)
+
 return setmetatable({
-    new = factory_warp(set),
+    new = factory,
     from_array = set.from_array,
 }, {
     __call = function(_, ...)
-        return set.new(...)
+        return factory(...)
     end,
 })
