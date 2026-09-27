@@ -5,8 +5,7 @@ local table_wipe = table.wipe
 local is_server = lib.is_server
 
 --[[ Sync Map Module ]]
-local syncmap <const> = {}
-syncmap.__index = syncmap
+local syncmap <const> = lib.class()
 
 local ENUM_SYNC_MAP_ACTION <const> = {
     SET = 1,
@@ -27,9 +26,8 @@ function syncmap:__len()
     return #self.map
 end
 
-function syncmap:new(in_id, in_opts)
+function syncmap:constructor(in_id, in_opts)
     in_opts = in_opts or {}
-    local self = setmetatable({}, syncmap)
     self.opts = {}
     self.opts.only_relevant = in_opts.only_relevant == true
     self.id = in_id
@@ -60,8 +58,6 @@ function syncmap:new(in_id, in_opts)
         self.full_sync_requested_at = nil
         self:_init_client()
     end
-
-    return self
 end
 
 function syncmap:destroy()
