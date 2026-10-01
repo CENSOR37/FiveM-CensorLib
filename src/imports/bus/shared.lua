@@ -1,3 +1,5 @@
+local factory_warp = require "src.imports._factory_warp.shared"
+
 local bus = cslib.class()
 
 function bus:constructor(opts)
@@ -80,4 +82,10 @@ function bus:clear(event_name)
     self.listeners[event_name] = nil
 end
 
-return bus
+return setmetatable({
+    new = factory_warp(bus),
+}, {
+    __call = function(_, ...)
+        return bus:new(...)
+    end,
+})
