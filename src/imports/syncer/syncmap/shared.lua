@@ -85,11 +85,11 @@ function syncmap:destroy()
         local destroy_event = self:_eventname("incoming_destroy")
         if (self.opts.only_relevant) then
             for src in pairs(self.relevant_sources) do
-                lib.resource.emit_client_adaptive(destroy_event, src)
+                lib.resource.emit_client_adaptive(destroy_event, src, self.epoch)
                 self:_emit(ENUM_SYNC_MAP_EVENT.END_RELEVANT, src)
             end
         else
-            lib.resource.emit_all_clients_adaptive(destroy_event)
+            lib.resource.emit_all_clients_adaptive(destroy_event, self.epoch)
         end
     end
 
@@ -279,7 +279,11 @@ function syncmap:_apply_deltas(deltas)
 end
 
 function syncmap:_init_client()
-    self:_event(lib.resource.on_server(self:_eventname("incoming_destroy"), function()
+    self:_event(lib.resource.on_server(self:_eventname("incoming_destroy"), function(epoch)
+        if (self.epoch == nil or epoch ~= self.epoch) then
+            return
+        end
+
         self:destroy()
     end))
 
