@@ -17,6 +17,8 @@ local ENUM_SYNC_MAP_ACTION <const> = {
 local ENUM_SYNC_MAP_EVENT <const> = {
     PRE_REPLICATED_CHANGE = "pre_replicated_change",   -- client only, before the change is applied to the local map.
     POST_REPLICATED_CHANGE = "post_replicated_change", -- client only, after the change has been applied to the local map.
+    BEGIN_RELEVANT = "begin_relevant",                 -- server only, passes src when player becomes relevant.
+    END_RELEVANT = "end_relevant",                     -- server only, passes src when player ceases to be relevant.
 }
 
 -- Minimum interval (ms) between full-sync requests from a client. A burst of skipped
@@ -84,6 +86,7 @@ function syncmap:destroy()
         if (self.opts.only_relevant) then
             for src in pairs(self.relevant_sources) do
                 lib.resource.emit_client_adaptive(destroy_event, src)
+                self:_emit(ENUM_SYNC_MAP_EVENT.END_RELEVANT, src)
             end
         else
             lib.resource.emit_all_clients_adaptive(destroy_event)
@@ -216,7 +219,10 @@ function syncmap:_init_server()
 
     if (self.opts.only_relevant and player_bus) then
         self._unbind_player_dropped = player_bus:on("playerDropped", function(src)
-            self.relevant_sources[src] = nil
+            if (self.relevant_sources[src]) then
+                self.relevant_sources[src] = nil
+                self:_emit(ENUM_SYNC_MAP_EVENT.END_RELEVANT, src)
+            end
         end)
     end
 end
@@ -416,6 +422,7 @@ function syncmap:add_relevant_player(in_src)
     self:_flush()
     self.relevant_sources[src] = true
     self:_send_full_sync(src)
+    self:_emit(ENUM_SYNC_MAP_EVENT.BEGIN_RELEVANT, src)
 end
 
 function syncmap:remove_relevant_player(in_src)
@@ -428,6 +435,7 @@ function syncmap:remove_relevant_player(in_src)
     self.relevant_sources[src] = nil
     -- An empty snapshot at the current version wipes the client's copy (and fires change events for every key).
     lib.resource.emit_client_adaptive(self:_eventname("incoming_full_sync"), src, self.epoch, self.version, {})
+    self:_emit(ENUM_SYNC_MAP_EVENT.END_RELEVANT, src)
 end
 
 -- END OF: PUBLIC API
