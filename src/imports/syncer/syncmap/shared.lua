@@ -1,5 +1,6 @@
 --- Copyright (c) 2024-2026 CENSOR37. Licensed under the MIT License.
 
+local bus = require "src.imports.bus.shared"
 local lib = require "src.imports._lib.shared"
 local table_wipe = table.wipe
 local is_server = lib.is_server
@@ -21,6 +22,18 @@ local ENUM_SYNC_MAP_EVENT <const> = {
 -- Minimum interval (ms) between full-sync requests from a client. A burst of skipped
 -- packets while a full sync is already in flight must not become a burst of requests.
 local FULL_SYNC_REQUEST_COOLDOWN_MS <const> = 1000
+
+local player_bus = nil
+if (is_server) then
+    player_bus = bus()
+
+    lib.on("playerDropped", function()
+        local src = tonumber(source)
+        if (src) then
+            player_bus:emit("playerDropped", src)
+        end
+    end)
+end
 
 function syncmap:__len()
     return #self.map
@@ -51,6 +64,7 @@ function syncmap:constructor(in_id, in_opts)
         self.relevant_sources = {}
         self.full_deltas = nil
         self.full_deltas_version = -1
+        self._unbind_player_dropped = nil
         self:_init_server()
     else
         self.epoch = nil
@@ -61,6 +75,11 @@ function syncmap:constructor(in_id, in_opts)
 end
 
 function syncmap:destroy()
+    if (self._unbind_player_dropped) then
+        self._unbind_player_dropped()
+        self._unbind_player_dropped = nil
+    end
+
     for i = 1, #self.event_handlers do
         lib.off(self.event_handlers[i])
     end
@@ -180,12 +199,11 @@ function syncmap:_init_server()
         self:_send_full_sync(src)
     end))
 
-    self:_event(lib.on("playerDropped", function()
-        local src = tonumber(source)
-        if (src) then
+    if (self.opts.only_relevant and player_bus) then
+        self._unbind_player_dropped = player_bus:on("playerDropped", function(src)
             self.relevant_sources[src] = nil
-        end
-    end))
+        end)
+    end
 end
 
 -- END OF: SERVER
