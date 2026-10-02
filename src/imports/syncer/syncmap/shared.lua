@@ -47,6 +47,7 @@ function syncmap:constructor(in_id, in_opts)
     self.map = lib.map()
     self.version = 0
     self.event_handlers = {}
+    self.destroyed = false
 
     self.listeners = {}
     for _, value in pairs(ENUM_SYNC_MAP_EVENT) do
@@ -75,6 +76,20 @@ function syncmap:constructor(in_id, in_opts)
 end
 
 function syncmap:destroy()
+    if (self.destroyed) then return end
+    self.destroyed = true
+
+    if (is_server) then
+        local destroy_event = self:_eventname("incoming_destroy")
+        if (self.opts.only_relevant) then
+            for src in pairs(self.relevant_sources) do
+                lib.resource.emit_client_adaptive(destroy_event, src)
+            end
+        else
+            lib.resource.emit_all_clients_adaptive(destroy_event)
+        end
+    end
+
     if (self._unbind_player_dropped) then
         self._unbind_player_dropped()
         self._unbind_player_dropped = nil
@@ -258,6 +273,10 @@ function syncmap:_apply_deltas(deltas)
 end
 
 function syncmap:_init_client()
+    self:_event(lib.resource.on_server(self:_eventname("incoming_destroy"), function()
+        self:destroy()
+    end))
+
     self:_event(lib.resource.on_server(self:_eventname("incoming_deltas"), function(epoch, version, deltas)
         -- No baseline yet (or the server instance changed): deltas are meaningless, we need a snapshot.
         if (self.awaiting_full_sync or epoch ~= self.epoch) then
