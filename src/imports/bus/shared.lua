@@ -73,7 +73,10 @@ function bus:emit(event_name, ...)
     end
 
     for i = 1, #list do
-        list[i](...)
+        local success, err = pcall(list[i], ...)
+        if (not success) then
+            print(("^1[Bus Error] Event '%s' callback failed: %s^0"):format(event_name, err))
+        end
     end
 end
 
