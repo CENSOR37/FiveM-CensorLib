@@ -390,6 +390,10 @@ function syncmap:mark_dirty()
     self:_flush()
 end
 
+function syncmap:has_relevant_players()
+    return next(self.relevant_sources) ~= nil
+end
+
 function syncmap:_is_player_relevant(in_src)
     local src = tonumber(in_src)
     return self.relevant_sources[src] == true, src

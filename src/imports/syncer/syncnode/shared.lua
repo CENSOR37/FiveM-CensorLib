@@ -16,6 +16,11 @@ function syncnode:constructor()
 
 end
 
+function syncnode:has_relevant_players()
+    local node_syncmap = self.__node_syncmap
+    return node_syncmap:has_relevant_players()
+end
+
 function syncnode:is_player_relevant(in_src)
     local node_syncmap = self.__node_syncmap
     assert(in_src, "syncnode:is_player_relevant requires in_src to be set")
