@@ -50,13 +50,13 @@ local function draw_origin_dbg(colshape)
     draw_text_3d_dbg(("%.4f"):format(dist), origin)
 end
 
-local function colshape_classwarp(class, ...)
+local function colshape_classwarp(shapetype, class, ...)
     return setmetatable({
         new = function(...)
             return class:new(...)
         end,
         is_a = function(obj)
-            return getmetatable(obj) == class
+            return obj.shapetype == shapetype
         end,
     }, {
         __call = function(_, ...)
@@ -68,9 +68,11 @@ end
 -- colshape
 local colshape = class()
 
-function colshape:constructor(origin, ...)
+function colshape:constructor(in_shapetype, origin, ...)
     assert(origin, "origin is required")
+    assert(in_shapetype, "shapetype is required")
     self.origin = origin
+    self.shapetype = in_shapetype
     self.args = { ... }
 end
 
@@ -92,7 +94,7 @@ function colshape_circle:constructor(position, radius)
 
     local origin = vec(position.x, position.y, 0.0)
 
-    self.super:constructor(origin, position, radius)
+    self.super:constructor("circle", origin, position, radius)
     self.radius = numdeci(radius)
     self.position = vec(position.x, position.y)
 end
@@ -132,7 +134,7 @@ function colshape_sphere:constructor(position, radius)
 
     local origin = vec(position.x, position.y, position.z)
 
-    self.super:constructor(origin, position, radius)
+    self.super:constructor("sphere", origin, position, radius)
     self.radius = radius
     self.position = vec(position.x, position.y, position.z)
     self.origin = origin
@@ -187,7 +189,7 @@ function colshape_poly:constructor(in_points, in_min_z, in_max_z)
     for i = 1, #self.points do
         origin = origin + self.points[i]
     end
-    self.super:constructor(origin / #self.points, in_points, in_min_z, in_max_z)
+    self.super:constructor("poly", origin / #self.points, in_points, in_min_z, in_max_z)
     self.radius = -math.huge
 
     local dist = math.abs(self.max_z - self.min_z) / 2.0
@@ -254,7 +256,7 @@ function colshape_poly:draw_debug()
 end
 
 return {
-    circle = colshape_classwarp(colshape_circle),
-    sphere = colshape_classwarp(colshape_sphere),
-    poly = colshape_classwarp(colshape_poly),
+    circle = colshape_classwarp("circle", colshape_circle),
+    sphere = colshape_classwarp("sphere", colshape_sphere),
+    poly = colshape_classwarp("poly", colshape_poly),
 }
