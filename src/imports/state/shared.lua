@@ -1,4 +1,4 @@
-local factory_warp = require "src.imports._factory_warp.shared"
+local module_warp = require "src.imports._module_warp.shared"
 local class = require "src.imports.class.shared"
 
 local state = class()
@@ -44,10 +44,4 @@ function state:unsubscribe(callback)
     self.private.subscribers[callback] = nil
 end
 
-return setmetatable({
-    new = factory_warp(state),
-}, {
-    __call = function(_, ...)
-        return state:new(...)
-    end,
-})
+return module_warp.module_class_warp(state)

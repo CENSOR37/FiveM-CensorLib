@@ -1,7 +1,7 @@
 local table_wipe = table.wipe
 
 local class = require "src.imports.class.shared"
-local factory_warp = require "src.imports._factory_warp.shared"
+local module_warp = require "src.imports._module_warp.shared"
 
 -- Map class: ordered key-value map
 local map = class()
@@ -105,16 +105,13 @@ function map:set(key, value)
     end
 end
 
-local factory = factory_warp(map)
+local out = {}
+out.new = module_warp.module_class_warp(map)
+out.from_array = map.from_array
+out.class = map
 
-return setmetatable({
-    new = factory,
-    from_array = map.from_array,
-    class = map,
-}, {
+return setmetatable(out, {
     __call = function(_, ...)
-        local args = { ... }
-
-        return map.from_array(args)
+        return map:new(...)
     end,
 })

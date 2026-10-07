@@ -1,4 +1,4 @@
-local factory_warp = require "src.imports._factory_warp.shared"
+local module_warp = require "src.imports._module_warp.shared"
 
 local bus = cslib.class()
 
@@ -85,10 +85,4 @@ function bus:clear(event_name)
     self.listeners[event_name] = nil
 end
 
-return setmetatable({
-    new = factory_warp(bus),
-}, {
-    __call = function(_, ...)
-        return bus:new(...)
-    end,
-})
+return module_warp.module_class_warp(bus)

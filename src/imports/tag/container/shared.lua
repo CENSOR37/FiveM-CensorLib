@@ -1,5 +1,5 @@
 local lib = require "src.imports._lib.shared"
-local factory_warp = require "src.imports._factory_warp.shared"
+local module_warp = require "src.imports._module_warp.shared"
 
 local tag_container = lib.class.extends(lib.map.class)
 
@@ -102,10 +102,4 @@ function tag_container:has_all_from(other)
     return self:has_all(other:get_tags())
 end
 
-return setmetatable({
-    new = factory_warp(tag_container),
-}, {
-    __call = function(_, ...)
-        return tag_container:new(...)
-    end,
-})
+return module_warp.module_class_warp(tag_container)

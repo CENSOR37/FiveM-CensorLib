@@ -2,7 +2,7 @@ local setmetatable = setmetatable
 local table_wipe = table.wipe
 
 local class = require "src.imports.class.shared"
-local factory_warp = require "src.imports._factory_warp.shared"
+local module_warp = require "src.imports._module_warp.shared"
 local set = class()
 
 function set:__len()
@@ -114,13 +114,12 @@ function set:iterator()
     end
 end
 
-local factory = factory_warp(set)
+local out = {}
+out.new = module_warp.module_class_warp(set)
+out.from_array = set.from_array
 
-return setmetatable({
-    new = factory,
-    from_array = set.from_array,
-}, {
+return setmetatable(out, {
     __call = function(_, ...)
-        return factory(...)
+        return set.new(...)
     end,
 })
