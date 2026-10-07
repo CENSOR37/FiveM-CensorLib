@@ -10,25 +10,25 @@ function map:__len()
     return self.size
 end
 
-function map:constructor()
+function map:constructor(iterable)
     self.data = {}
     self.index = {}
     self.size = 0
 
     self:clear()
+
+    if (iterable) then
+        for i = 1, #iterable do
+            local value = iterable[i]
+            assert(#value == 2, "map constructor requires a table with two elements")
+
+            self:set(value[1], value[2])
+        end
+    end
 end
 
 function map.from_array(array)
-    local self = map:new()
-
-    for i = 1, #array do
-        local value = array[i]
-        assert(#value == 2, "map constructor requires a table with two elements")
-
-        self:set(value[1], value[2])
-    end
-
-    return self
+    return map:new(array)
 end
 
 --- Clear all entries in the map
