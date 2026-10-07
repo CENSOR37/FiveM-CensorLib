@@ -120,6 +120,6 @@ out.from_array = set.from_array
 
 return setmetatable(out, {
     __call = function(_, ...)
-        return set.new(...)
+        return set:new(...)
     end,
 })
