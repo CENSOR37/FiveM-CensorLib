@@ -32,16 +32,20 @@ function state:set(new_value)
     end
 end
 
-function state:subscribe(callback)
+function state:watch(callback)
     self.private.subscribers[callback] = true
 
     return function()
-        self:unsubscribe(callback)
+        self:unwatch(callback)
     end
 end
 
-function state:unsubscribe(callback)
+function state:unwatch(callback)
     self.private.subscribers[callback] = nil
 end
+
+-- compatibility alias
+state.subscribe = state.watch
+state.unsubscribe = state.unwatch
 
 return module_warp.module_class_warp(state)
