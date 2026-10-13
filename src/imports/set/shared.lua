@@ -95,7 +95,7 @@ set.contain = set.has
 set.contains = set.has
 
 function set.from_array(array)
-    local self = set.new()
+    local self = set:new()
     for i = 1, #array do
         local value = array[i]
         self:add(value)
