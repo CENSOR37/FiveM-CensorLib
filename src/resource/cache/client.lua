@@ -91,6 +91,7 @@ local function do_poll()
     find_or_create_state("climbing"):set(is_true(IsPedClimbing(ped)))
     find_or_create_state("jumping"):set(is_true(IsPedJumping(ped)))
     find_or_create_state("stamina"):set(round(GetPlayerStamina(player_id), 2))
+    find_or_create_state("underwater"):set(is_true(IsPedSwimmingUnderWater(ped)))
     find_or_create_state("underwater_time"):set(round(GetPlayerUnderwaterTimeRemaining(player_id), 2))
     find_or_create_state("is_talking"):set(is_true(NetworkIsPlayerTalking(player_id)))
 end
