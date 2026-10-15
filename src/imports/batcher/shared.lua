@@ -11,7 +11,7 @@ local function next_batch_id()
     return current_batch_id
 end
 
-local timestamp = cslib.is_client and GetNetworkTime or GetGameTimer
+local timestamp = GetGameTimer
 
 cslib.on("onResourceStop", function(resource_name)
     if (resource_name ~= current_resourcename) then return end
@@ -84,7 +84,7 @@ end
 
 ---@return boolean accepted
 function batcher:enqueue(action)
-    if (self._destroyed) then return false end
+    if (self._destroyed or action == nil) then return false end
 
     self._queue_len += 1
     self._queue[self._queue_len] = action
