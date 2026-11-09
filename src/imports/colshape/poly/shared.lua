@@ -49,6 +49,15 @@ function colshape_poly:constructor(in_points, in_min_z, in_max_z)
     end
 end
 
+function colshape_poly:native_args()
+    local points_flat = {}
+    for i = 1, #self.points do
+        table.insert(points_flat, self.points[i].x)
+        table.insert(points_flat, self.points[i].y)
+    end
+    return self.min_z, self.max_z, points_flat
+end
+
 function colshape_poly:is_position_inside(position)
     local point = vec(position.x, position.y, position.z)
     return glm_polygon_contains(self.polygon, point, self.thickness)

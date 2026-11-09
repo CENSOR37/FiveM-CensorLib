@@ -24,6 +24,10 @@ function colshape_sphere:is_position_inside(position)
     return #(position - self.position) <= self.radius
 end
 
+function colshape_sphere:native_args()
+    return self.position.x, self.position.y, self.position.z, self.radius
+end
+
 function colshape_sphere:draw(r, g, b, a)
     if (lib.is_server) then return end
 

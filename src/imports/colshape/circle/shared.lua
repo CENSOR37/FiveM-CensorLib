@@ -18,6 +18,10 @@ function colshape_circle:constructor(position, radius)
     self.position = vec(position.x, position.y)
 end
 
+function colshape_circle:native_args()
+    return self.position.x, self.position.y, self.radius
+end
+
 function colshape_circle:is_position_inside(position)
     local point = vec(position.x, position.y)
     return #(point - self.position) <= self.radius
