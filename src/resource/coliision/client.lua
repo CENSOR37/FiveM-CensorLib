@@ -1,3 +1,4 @@
+-- DEPRECATED WILL BE REMOVED SOON
 local lib = require "src.imports._lib.shared"
 local states <const> = require "src.resource.cache.client"
 local spatial_grid <const> = require "src.imports._spatial-grid.shared"
