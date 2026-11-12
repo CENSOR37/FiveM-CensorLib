@@ -22,10 +22,6 @@ local id_to_handle = {}
 local handle_to_id = {}
 local inside_zone = {}
 
-local local_ped = function()
-    return states.ped.value or PlayerPedId() -- might need to use PlayerPedId directly if cache becomes unreliable
-end
-
 local function set_colshape_only_player(handle)
     for key, value in pairs(GTA_SYNC_ENTITY_TYPES) do
         SetColshapeEntityType(handle, value, false)
@@ -34,20 +30,32 @@ local function set_colshape_only_player(handle)
 end
 
 AddEventHandler("onColshapeEnter", function(entity, handle)
-    local ped = local_ped()
-    if (entity ~= ped) then return end
+    if (entity == PlayerPedId()) then
+        local ped_set = inside_zone[handle]
+        if (not ped_set) then
+            ped_set = cslib.set()
+            inside_zone[handle] = ped_set
+        end
 
-    inside_zone[handle] = true
-    lib.emit("cslib:collision:enter", ped, handle_to_id[handle])
+        ped_set:add(entity)
+
+        if (#ped_set == 1) then -- Only emit enter event when the first entity enters the colshape
+            lib.emit("cslib:collision:enter", entity, handle_to_id[handle])
+            cslib.print.info("Entered colshape with handle: " .. tostring(handle), entity)
+        end
+    end
 end)
 
 AddEventHandler("onColshapeExit", function(entity, handle)
-    local ped = local_ped()
-    if (entity ~= ped) then return end
+    local ped_set = inside_zone[handle]
+    if (ped_set) then
+        ped_set:delete(entity)
 
-    if (inside_zone[handle]) then
-        inside_zone[handle] = nil
-        lib.emit("cslib:collision:exit", ped, handle_to_id[handle])
+        if (#ped_set <= 0) then
+            inside_zone[handle] = nil
+            lib.emit("cslib:collision:exit", entity, handle_to_id[handle])
+            cslib.print.verbose("Exited colshape with handle: " .. tostring(handle), type(entity))
+        end
     end
 end)
 
@@ -86,7 +94,7 @@ local function remove_colshape(custom_id)
 
         if (inside_zone[handle]) then
             inside_zone[handle] = nil
-            lib.emit("cslib:collision:exit", local_ped(), custom_id)
+            lib.emit("cslib:collision:exit", PlayerPedId(), custom_id)
         end
 
         id_to_handle[custom_id] = nil
