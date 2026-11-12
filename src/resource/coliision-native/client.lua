@@ -41,7 +41,6 @@ cslib.on("onColshapeEnter", function(entity, handle)
 
         if (#ped_set == 1) then -- Only emit enter event when the first entity enters the colshape
             lib.emit("cslib:collision:enter", entity, handle_to_id[handle])
-            cslib.print.info("Entered colshape with handle: " .. tostring(handle), entity)
         end
     end
 end)
@@ -54,7 +53,6 @@ cslib.on("onColshapeExit", function(entity, handle)
         if (#ped_set <= 0) then
             inside_zone[handle] = nil
             lib.emit("cslib:collision:exit", entity, handle_to_id[handle])
-            cslib.print.verbose("Exited colshape with handle: " .. tostring(handle), type(entity))
         end
     end
 end)
