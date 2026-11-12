@@ -29,7 +29,7 @@ local function set_colshape_only_player(handle)
     SetColshapeEntityType(handle, GTA_SYNC_ENTITY_TYPES.PLAYER, true)
 end
 
-AddEventHandler("onColshapeEnter", function(entity, handle)
+cslib.on("onColshapeEnter", function(entity, handle)
     if (entity == PlayerPedId()) then
         local ped_set = inside_zone[handle]
         if (not ped_set) then
@@ -46,7 +46,7 @@ AddEventHandler("onColshapeEnter", function(entity, handle)
     end
 end)
 
-AddEventHandler("onColshapeExit", function(entity, handle)
+cslib.on("onColshapeExit", function(entity, handle)
     local ped_set = inside_zone[handle]
     if (ped_set) then
         ped_set:delete(entity)

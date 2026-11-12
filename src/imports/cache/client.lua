@@ -19,7 +19,7 @@ local function init_cache_key(key)
         bound_events[key] = true
         cache_listeners[key] = {}
 
-        AddEventHandler(("cslib:cache:%s"):format(key), function(val, prev)
+        cslib.on(("cslib:cache:%s"):format(key), function(val, prev)
             cache[key] = val
             local events = cache_listeners[key]
             if (events) then
