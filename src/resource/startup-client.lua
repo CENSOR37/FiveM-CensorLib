@@ -38,7 +38,7 @@ local function SHOULD_USE_NATIVE_COLSHAPE()
 end
 
 if (SHOULD_USE_NATIVE_COLSHAPE()) then
-    require "src.resource.coliision-native.client"
+    require "src.resource.zone-native.client"
 else
-    require "src.resource.coliision.client"
+    require "src.resource.zone.client"
 end
