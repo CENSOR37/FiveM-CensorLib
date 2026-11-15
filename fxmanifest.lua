@@ -4,7 +4,7 @@ lua54 "yes"
 games { "gta5" }
 
 dependencies {
-    "require",
+    "require", -- https://github.com/overextended/cfxlua-require
 }
 
 --[[ Scripts. ]]

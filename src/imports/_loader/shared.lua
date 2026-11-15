@@ -3,11 +3,6 @@
 --- https://github.com/overextended/ox/blob/main/require.lua - See original file for license details.
 --- See https://github.com/overextended/cfxlua-require
 
----@diagnostic disable-next-line: undefined-global
-if not package or not runtime then
-    load(LoadResourceFile("require", "init.lua"), "@@require")()
-end
-
 local loader = {}
 
 ---@param file_path string

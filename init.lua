@@ -3,21 +3,13 @@ assert(_VERSION:find("5.4"), "^1[ Please enable Lua 5.4 ]^0")
 local lib_resource = "censorlib"
 local context = IsDuplicityVersion() and "server" or "client"
 
-local function preload_loader()
-    local name = "_loader"
-    local path = ("src/imports/%s/%s.lua"):format(name, "shared")
-    local src = LoadResourceFile(lib_resource, path)
-
-    local chunk, err = load(src, ("@@%s/src/imports/%s/%s.lua"):format(lib_resource, name, context))
-    assert(chunk and not err, ("\n^1Error importing module (%s): %s^0"):format(path, err))
-
-    local ok, result = pcall(chunk, lib_resource)
-    assert(ok and result, ("\n^1Error importing module (%s): %s^0"):format(path, result))
-
-    return result
+---@diagnostic disable-next-line: undefined-global
+if (not package or not runtime) then
+    load(LoadResourceFile("require", "init.lua"), "@@require")()
 end
 
-local loader = preload_loader()
+-- preload loader
+local loader = require(("@%s.src.imports.%s.%s"):format(lib_resource, "_loader", "shared"))
 local lib = loader.require(("src.imports._lib.shared"):format(lib_resource))
 lib._loader = loader
 
