@@ -3,6 +3,10 @@ use_experimental_fxv2_oal "yes"
 lua54 "yes"
 games { "gta5" }
 
+dependencies {
+    "require",
+}
+
 --[[ Scripts. ]]
 shared_script "init.lua"
 client_script "src/resource/startup-client.lua"
